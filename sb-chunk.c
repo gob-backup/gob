@@ -33,11 +33,6 @@ struct block {
     unsigned char data[BLOCK_LEN];
 };
 
-struct block_storage {
-    const char *path;
-    int pathfd;
-};
-
 static ssize_t read_block(struct block *out, int fd)
 {
     size_t total = read_bytes(fd, (char *) out->data, sizeof(out->data));
@@ -45,7 +40,7 @@ static ssize_t read_block(struct block *out, int fd)
     return total;
 }
 
-static int store_block(const struct block_storage *storage, const struct block *block)
+static int store_block(int storefd, const struct block *block)
 {
     unsigned char hash[HASH_LEN];
     char hex[HASH_LEN * 2 + 1], shard[3];
@@ -60,10 +55,10 @@ static int store_block(const struct block_storage *storage, const struct block *
     shard[1] = hex[1];
     shard[2] = '\0';
 
-    if ((dirfd = openat(storage->pathfd, shard, O_DIRECTORY)) < 0) {
-        if (mkdirat(storage->pathfd, shard, 0755) < 0)
+    if ((dirfd = openat(storefd, shard, O_DIRECTORY)) < 0) {
+        if (mkdirat(storefd, shard, 0755) < 0)
             die("Unable to create sharding directory '%s': %s\n", shard, strerror(errno));
-        if ((dirfd = openat(storage->pathfd, shard, O_DIRECTORY)) < 0)
+        if ((dirfd = openat(storefd, shard, O_DIRECTORY)) < 0)
             die("Unable to open sharding directory '%s': %s\n", shard, strerror(errno));
     }
 
@@ -85,18 +80,17 @@ static int store_block(const struct block_storage *storage, const struct block *
 
 int main(int argc, char *argv[])
 {
-    struct block_storage storage;
     crypto_generichash_state *state = malloc(crypto_generichash_statebytes());
     unsigned char hash[HASH_LEN];
     char hex[HASH_LEN * 2 + 1];
     size_t total = 0;
+    int storefd;
 
     if (argc != 2)
         die("USAGE: %s <DIR>\n", argv[0]);
 
-    storage.path = argv[1];
-    if ((storage.pathfd = open(storage.path, O_DIRECTORY)) < 0)
-        die("Unable to open storage '%s': %s\n", storage.path, strerror(errno));
+    if ((storefd = open(argv[1], O_DIRECTORY)) < 0)
+        die("Unable to open storage '%s': %s\n", argv[1], strerror(errno));
 
     if (crypto_generichash_init(state, NULL, 0, HASH_LEN) < 0)
         die("Unable to initialize hashing state");
@@ -114,7 +108,7 @@ int main(int argc, char *argv[])
         if (crypto_generichash_update(state, block.data, sizeof(block.data)) < 0)
             die("Unable to update hash");
 
-        if (store_block(&storage, &block) < 0)
+        if (store_block(storefd, &block) < 0)
             die("Unable to store block");
     }
 
@@ -126,6 +120,7 @@ int main(int argc, char *argv[])
 
     printf(">%s %"PRIuMAX"\n", hex, total);
     free(state);
+    close(storefd);
 
     return 0;
 }
