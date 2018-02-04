@@ -153,5 +153,8 @@ int main(int argc, char *argv[])
         haystack = NULL;
     }
 
+    if (data_len)
+        die("Premature end of chain\n");
+
     return 0;
 }
