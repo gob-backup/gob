@@ -2,10 +2,10 @@ include config.mk
 
 PROGRAMS=sb-cat sb-chunk
 
-CAT_SOURCES=sb-cat.c
+CAT_SOURCES=sb-cat.c common.c
 CAT_OBJECTS=${CAT_SOURCES:%.c=%.o}
 
-CHUNK_SOURCES=sb-chunk.c
+CHUNK_SOURCES=sb-chunk.c common.c
 CHUNK_OBJECTS=${CHUNK_SOURCES:%.c=%.o}
 
 all: ${PROGRAMS}

@@ -30,6 +30,7 @@
 #include <sodium.h>
 
 #include "config.h"
+#include "common.h"
 
 struct block {
     unsigned char data[BLOCK_LEN];
@@ -95,14 +96,8 @@ static int store_block(const struct block_storage *storage, const struct block *
         die("Unable to create block '%s': %s\n", hex, strerror(errno));
 
     if (fd >= 0) {
-        size_t written = 0;
-        ssize_t bytes;
-
-        while (written != sizeof(block->data)) {
-            if ((bytes = write(fd, block->data + written, sizeof(block->data) - written)) < 0)
-                die("Unable to write block '%s': %s\n", hex, strerror(errno));
-            written += bytes;
-        }
+        if (write_bytes(fd, (const char *)block->data, sizeof(block->data)) < 0)
+            die("Unable to write block '%s': %s\n", hex, strerror(errno));
     }
 
     puts(hex);

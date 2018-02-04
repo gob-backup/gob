@@ -25,6 +25,7 @@
 #include <sodium.h>
 
 #include "config.h"
+#include "common.h"
 
 #define MIN(x, y) ((x) <= (y) ? (x) : (y))
 
@@ -86,38 +87,6 @@ static int parse_trailer(unsigned char *hash_out, size_t *datalen_out, const cha
         die("Unable to decode trailer hash\n");
     if (bin_len != HASH_LEN)
         die("Trailer hash is too short\n");
-
-    return 0;
-}
-
-static int read_bytes(int fd, char *buf, size_t buflen)
-{
-    size_t total = 0;
-
-    while (total != buflen) {
-        ssize_t bytes = read(fd, buf + total, buflen - total);
-        if (bytes < 0)
-            return -1;
-        if (bytes == 0)
-            return -1;
-        total += bytes;
-    }
-
-    return 0;
-}
-
-static int write_bytes(int fd, char *buf, size_t buflen)
-{
-    size_t total = 0;
-
-    while (total != buflen) {
-        ssize_t bytes = write(fd, buf + total, buflen - total);
-        if (bytes < 0)
-            return -1;
-        if (bytes == 0)
-            return -1;
-        total += bytes;
-    }
 
     return 0;
 }
