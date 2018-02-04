@@ -12,11 +12,11 @@ all: ${PROGRAMS}
 
 sb-chunk: ${CHUNK_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $<
+	@${CC} ${LDFLAGS} -o $@ $^
 
 sb-cat: ${CAT_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $<
+	@${CC} ${LDFLAGS} -o $@ $^
 
 %.o: %.c config.h
 	@echo "CC $@"
