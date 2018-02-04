@@ -18,7 +18,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <sodium.h>
+
 #include "common.h"
+#include "config.h"
 
 void die(const char *fmt, ...)
 {
@@ -57,6 +60,34 @@ int write_bytes(int fd, const char *buf, size_t buflen)
             return -1;
         total += bytes;
     }
+
+    return 0;
+}
+
+int bin2hex(char *out, size_t outlen, const unsigned char *in, size_t inlen)
+{
+    if (inlen != HASH_LEN)
+        return -1;
+    if (outlen < HASH_LEN * 2 + 1)
+        return -1;
+    sodium_bin2hex(out, outlen, in, inlen);
+    return 0;
+}
+
+int hex2bin(unsigned char *out, size_t outlen, const char *in, size_t inlen)
+{
+    size_t parsed_len;
+
+    if (outlen != HASH_LEN)
+        return -1;
+    if (inlen != HASH_LEN * 2)
+        return -1;
+
+    if (sodium_hex2bin(out, outlen, in, inlen, NULL, &parsed_len, NULL) < 0)
+        return -1;
+
+    if (parsed_len != HASH_LEN)
+        return -1;
 
     return 0;
 }

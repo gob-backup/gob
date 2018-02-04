@@ -53,7 +53,8 @@ static int store_block(const struct block_storage *storage, const struct block *
 
     if (crypto_generichash(hash, sizeof(hash), block->data, sizeof(block->data), NULL, 0) < 0)
         die("Unable to hash block");
-    sodium_bin2hex(hex, sizeof(hex), hash, sizeof(hash));
+    if (bin2hex(hex, sizeof(hex), hash, sizeof(hash)) < 0)
+        die("Unable to convert binary to hex");
 
     shard[0] = hex[0];
     shard[1] = hex[1];
@@ -120,7 +121,9 @@ int main(int argc, char *argv[])
     if (crypto_generichash_final(state, hash, sizeof(hash)) < 0)
         die("Unable to finalize hash");
 
-    sodium_bin2hex(hex, sizeof(hex), hash, sizeof(hash));
+    if (bin2hex(hex, sizeof(hex), hash, sizeof(hash)) < 0)
+        die("Unable to convert binary to hex\n");
+
     printf(">%s %"PRIuMAX"\n", hex, total);
     free(state);
 

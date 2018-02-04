@@ -16,11 +16,10 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-
-#include <sodium.h>
 
 #include "config.h"
 #include "common.h"
@@ -47,7 +46,6 @@ static int parse_trailer(unsigned char *hash_out, size_t *datalen_out, const cha
 {
     char hash[HASH_LEN * 2];
     const char *trailer;
-    size_t bin_len;
     int i;
 
     if ((trailer = find_last_line(chain)) == NULL)
@@ -70,10 +68,8 @@ static int parse_trailer(unsigned char *hash_out, size_t *datalen_out, const cha
     if ((*datalen_out = strtol(trailer, NULL, 10)) == 0)
         die("Invalid data length in trailer\n");
 
-    if (sodium_hex2bin(hash_out, HASH_LEN, hash, sizeof(hash), NULL, &bin_len, NULL) < 0)
+    if (hex2bin(hash_out, HASH_LEN, hash, sizeof(hash)) < 0)
         die("Unable to decode trailer hash\n");
-    if (bin_len != HASH_LEN)
-        die("Trailer hash is too short\n");
 
     return 0;
 }
@@ -141,7 +137,6 @@ int main(int argc, char *argv[])
     haystack = chain;
     while ((line = strtok(haystack, "\n")) != NULL) {
         unsigned char line_hash[HASH_LEN];
-        size_t line_hash_len;
 
         if (*line == '>')
             break;
@@ -149,10 +144,8 @@ int main(int argc, char *argv[])
         if (data_len == 0)
             die("More lines, but all data read\n");
 
-        if (sodium_hex2bin(line_hash, HASH_LEN, line, strlen(line), NULL, &line_hash_len, NULL) < 0)
+        if (hex2bin(line_hash, sizeof(line_hash), line, strlen(line)) < 0)
             die("Unable to decode line hash\n");
-        if (line_hash_len != HASH_LEN)
-            die("Trailer hash is too short\n");
 
         if (read_block(dirfd, line, MIN(data_len, BLOCK_LEN)) < 0)
             die("Unable to read block '%s': %s", line, strerror(errno));

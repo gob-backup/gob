@@ -18,3 +18,6 @@
 void die(const char *fmt, ...);
 int read_bytes(int fd, char *buf, size_t buflen);
 int write_bytes(int fd, const char *buf, size_t buflen);
+
+int bin2hex(char *out, size_t outlen, const unsigned char *in, size_t inlen);
+int hex2bin(unsigned char *out, size_t outlen, const char *in, size_t inlen);
