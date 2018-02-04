@@ -114,7 +114,9 @@ int main(int argc, char *argv[])
 {
     unsigned char trailer_hash[HASH_LEN];
     char *chain = NULL, *haystack, *line;
+    char buf[1024];
     size_t total = 0, data_len;
+    ssize_t bytes;
     int dirfd;
 
     if (argc != 2)
@@ -123,21 +125,15 @@ int main(int argc, char *argv[])
     if ((dirfd = open(argv[1], O_DIRECTORY)) < 0)
         die("Unable to open storage '%s': %s\n", argv[1], strerror(errno));
 
-    while (1) {
-        char buf[1024];
-        ssize_t bytes;
-
-        bytes = read(STDIN_FILENO, buf, sizeof(buf));
-        if (bytes < 0)
-            die("Unable to read from stdin: %s", strerror(errno));
-        if (bytes == 0)
-            break;
-
+    while ((bytes = read_bytes(STDIN_FILENO, buf, sizeof(buf))) > 0) {
         chain = realloc(chain, total + bytes + 1);
         memcpy(chain + total, buf, bytes);
         total += bytes;
         chain[total] = '\0';
     }
+
+    if (bytes < 0)
+        die("Unable to read from stdin: %s", strerror(errno));
 
     if (parse_trailer(trailer_hash, &data_len, chain) < 0)
         die("Unable to parse trailer\n");
