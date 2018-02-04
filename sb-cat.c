@@ -20,10 +20,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <sodium.h>
 
 #include "config.h"
+
+#define MIN(x, y) ((x) <= (y) ? (x) : (y))
 
 static void die(const char *fmt, ...)
 {
@@ -87,14 +90,81 @@ static int parse_trailer(unsigned char *hash_out, size_t *datalen_out, const cha
     return 0;
 }
 
+static int read_bytes(int fd, char *buf, size_t buflen)
+{
+    size_t total = 0;
+
+    while (total != buflen) {
+        ssize_t bytes = read(fd, buf + total, buflen - total);
+        if (bytes < 0)
+            return -1;
+        if (bytes == 0)
+            return -1;
+        total += bytes;
+    }
+
+    return 0;
+}
+
+static int write_bytes(int fd, char *buf, size_t buflen)
+{
+    size_t total = 0;
+
+    while (total != buflen) {
+        ssize_t bytes = write(fd, buf + total, buflen - total);
+        if (bytes < 0)
+            return -1;
+        if (bytes == 0)
+            return -1;
+        total += bytes;
+    }
+
+    return 0;
+}
+
+static int read_block(int dirfd, char *hash, size_t len)
+{
+    char shard[3];
+    int fd, shardfd;
+
+    shard[0] = hash[0];
+    shard[1] = hash[1];
+    shard[2] = '\0';
+
+    if ((shardfd = openat(dirfd, shard, O_DIRECTORY)) < 0)
+        die("Unable to open sharding directory '%s': %s\n", shard, strerror(errno));
+
+    if ((fd = openat(shardfd, hash + 2, O_RDONLY)) < 0)
+        die("Unable to open block '%s': %s\n", hash, strerror(errno));
+
+    while (len) {
+        char block[BLOCK_LEN];
+
+        if (read_bytes(fd, block, MIN(BLOCK_LEN, len)) < 0)
+            die("Unable to read block '%s': %s\n", hash, strerror(errno));
+        if (write_bytes(STDOUT_FILENO, block, MIN(BLOCK_LEN, len)) < 0)
+            die("Unable to write block '%s': %s\n", hash, strerror(errno));
+
+        len -= MIN(BLOCK_LEN, len);
+    }
+
+    close(shardfd);
+    close(fd);
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
-    unsigned char hash[HASH_LEN];
-    char *chain = NULL;
+    unsigned char trailer_hash[HASH_LEN];
+    char *chain = NULL, *haystack, *line;
     size_t total = 0, data_len;
+    int dirfd;
 
     if (argc != 2)
         die("USAGE: %s <DIR>\n", argv[0]);
+
+    if ((dirfd = open(argv[1], O_DIRECTORY)) < 0)
+        die("Unable to open storage '%s': %s\n", argv[1], strerror(errno));
 
     while (1) {
         char buf[1024];
@@ -112,8 +182,30 @@ int main(int argc, char *argv[])
         chain[total] = '\0';
     }
 
-    if (parse_trailer(hash, &data_len, chain) < 0)
+    if (parse_trailer(trailer_hash, &data_len, chain) < 0)
         die("Unable to parse trailer\n");
+
+    haystack = chain;
+    while ((line = strtok(haystack, "\n")) != NULL) {
+        unsigned char line_hash[HASH_LEN];
+        size_t line_hash_len;
+
+        if (*line == '>')
+            break;
+
+        if (data_len == 0)
+            die("More lines, but all data read\n");
+
+        if (sodium_hex2bin(line_hash, HASH_LEN, line, strlen(line), NULL, &line_hash_len, NULL) < 0)
+            die("Unable to decode line hash\n");
+        if (line_hash_len != HASH_LEN)
+            die("Trailer hash is too short\n");
+
+        if (read_block(dirfd, line, MIN(data_len, BLOCK_LEN)) < 0)
+            die("Unable to read block '%s': %s", line, strerror(errno));
+        data_len -= data_len % BLOCK_LEN;
+        haystack = NULL;
+    }
 
     return 0;
 }
