@@ -24,4 +24,5 @@ sb-cat: ${CAT_OBJECTS}
 
 .PHONY: clean
 clean:
+	rm -f sb-cat ${CAT_OBJECTS}
 	rm -f sb-chunk ${CHUNK_OBJECTS}
