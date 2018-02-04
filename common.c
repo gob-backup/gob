@@ -40,11 +40,11 @@ int read_bytes(int fd, char *buf, size_t buflen)
         if (bytes < 0)
             return -1;
         if (bytes == 0)
-            return -1;
+            return total;
         total += bytes;
     }
 
-    return 0;
+    return buflen;
 }
 
 int write_bytes(int fd, const char *buf, size_t buflen)

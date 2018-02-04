@@ -40,20 +40,8 @@ struct block_storage {
 
 static ssize_t read_block(struct block *out, int fd)
 {
-    size_t total = 0;
-
-    while (total < sizeof(out->data)) {
-        ssize_t bytes = read(fd, out->data + total, sizeof(out->data) - total);
-        if (bytes < 0)
-            die("Failed reading block: %s", strerror(errno));
-        if (bytes == 0)
-            break;
-
-        total += bytes;
-    }
-
+    size_t total = read_bytes(fd, (char *) out->data, sizeof(out->data));
     memset(out->data + total, 0, sizeof(out->data) - total);
-
     return total;
 }
 

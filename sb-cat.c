@@ -95,13 +95,14 @@ static int read_block(int dirfd, char *hash, size_t len)
 
     while (len) {
         char block[BLOCK_LEN];
+        ssize_t blocklen = MIN(BLOCK_LEN, len);
 
-        if (read_bytes(fd, block, MIN(BLOCK_LEN, len)) < 0)
+        if (read_bytes(fd, block, blocklen) != blocklen)
             die("Unable to read block '%s': %s\n", hash, strerror(errno));
         if (write_bytes(STDOUT_FILENO, block, MIN(BLOCK_LEN, len)) < 0)
             die("Unable to write block '%s': %s\n", hash, strerror(errno));
 
-        len -= MIN(BLOCK_LEN, len);
+        len -= blocklen;
     }
 
     close(shardfd);
