@@ -21,6 +21,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#include <sodium.h>
+
 #include "config.h"
 #include "common.h"
 
@@ -99,7 +101,8 @@ static int read_block(struct block *out, int dirfd, char *hash)
 
 int main(int argc, char *argv[])
 {
-    unsigned char trailer_hash[HASH_LEN];
+    crypto_generichash_state *state = malloc(crypto_generichash_statebytes());
+    unsigned char trailer_hash[HASH_LEN], computed_hash[HASH_LEN];
     char *chain = NULL, *haystack, *hash;
     char buf[1024];
     size_t total = 0, data_len;
@@ -125,6 +128,9 @@ int main(int argc, char *argv[])
     if (parse_trailer(trailer_hash, &data_len, chain) < 0)
         die("Unable to parse trailer\n");
 
+    if (crypto_generichash_init(state, NULL, 0, HASH_LEN) < 0)
+        die("Unable to initialize hashing state");
+
     haystack = chain;
     while ((hash = strtok(haystack, "\n")) != NULL) {
         unsigned char line_hash[HASH_LEN];
@@ -143,6 +149,9 @@ int main(int argc, char *argv[])
         if (read_block(&block, dirfd, hash) < 0)
             die("Unable to read block '%s': %s", hash, strerror(errno));
 
+        if (crypto_generichash_update(state, block.data, BLOCK_LEN) < 0)
+            die("Unable to update hash");
+
         if (write_bytes(STDOUT_FILENO, (char *) block.data, blocklen) < 0)
             die("Unable to write block '%s': %s\n", hash, strerror(errno));
 
@@ -152,6 +161,14 @@ int main(int argc, char *argv[])
 
     if (data_len)
         die("Premature end of chain\n");
+
+    if (crypto_generichash_final(state, computed_hash, sizeof(computed_hash)) < 0)
+        die("Unable to finalize hash");
+
+    if (memcmp(computed_hash, trailer_hash, sizeof(computed_hash)))
+        die("Trailer hash does not match computed hash\n");
+
+    free(state);
 
     return 0;
 }
