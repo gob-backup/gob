@@ -11,7 +11,7 @@ sb-chunk: ${CHUNK_OBJECTS}
 	@echo "LD $@"
 	@${CC} ${LDFLAGS} -o $@ $<
 
-%.o: %.c
+%.o: %.c config.h
 	@echo "CC $@"
 	@${CC} -c ${CFLAGS} ${CPPFLAGS} -o $@ $<
 

@@ -29,8 +29,7 @@
 
 #include <sodium.h>
 
-#define BLOCK_LEN 4096
-#define HASH_LEN  16
+#include "config.h"
 
 struct block {
     unsigned char data[BLOCK_LEN];
