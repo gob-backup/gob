@@ -1,9 +1,13 @@
 include config.mk
 
-SOURCES=sb-chunk.c
-OBJECTS=${SOURCES:%.c=%.o}
+PROGRAMS=sb-chunk
 
-sb-chunk: ${OBJECTS}
+CHUNK_SOURCES=sb-chunk.c
+CHUNK_OBJECTS=${CHUNK_SOURCES:%.c=%.o}
+
+all: ${PROGRAMS}
+
+sb-chunk: ${CHUNK_OBJECTS}
 	@echo "LD $@"
 	@${CC} ${LDFLAGS} -o $@ $<
 
@@ -13,4 +17,4 @@ sb-chunk: ${OBJECTS}
 
 .PHONY: clean
 clean:
-	rm sb-chunk ${OBJECTS}
+	rm -f sb-chunk ${CHUNK_OBJECTS}
