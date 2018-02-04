@@ -15,12 +15,9 @@
 
 #include <sys/stat.h>
 
-#include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
-#include <stdarg.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -40,17 +37,6 @@ struct block_storage {
     const char *path;
     int pathfd;
 };
-
-static void die(const char *fmt, ...)
-{
-    va_list ap;
-
-    va_start(ap, fmt);
-    vfprintf(stderr, fmt, ap);
-    va_end(ap);
-
-    exit(1);
-}
 
 static ssize_t read_block(struct block *out, int fd)
 {
