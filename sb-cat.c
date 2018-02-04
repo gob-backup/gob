@@ -66,7 +66,7 @@ static int parse_trailer(unsigned char *hash_out, size_t *datalen_out, const cha
         die("Last line is not a trailer line\n");
     trailer++;
 
-    for (i = 0; i <= (HASH_LEN * 2); i++) {
+    for (i = 0; i < (HASH_LEN * 2); i++) {
         char h = *trailer++;
         if (!strchr("0123456789abcdef", h))
             die("Invalid trailer hash\n");
