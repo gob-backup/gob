@@ -81,9 +81,11 @@ static int store_block(int storefd, const struct block *block)
 int main(int argc, char *argv[])
 {
     crypto_generichash_state *state = malloc(crypto_generichash_statebytes());
+    struct block block;
     unsigned char hash[HASH_LEN];
     char hex[HASH_LEN * 2 + 1];
     size_t total = 0;
+    ssize_t bytes;
     int storefd;
 
     if (argc != 2)
@@ -95,22 +97,17 @@ int main(int argc, char *argv[])
     if (crypto_generichash_init(state, NULL, 0, HASH_LEN) < 0)
         die("Unable to initialize hashing state");
 
-    while (1) {
-        struct block block;
-        ssize_t bytes;
-
-        if ((bytes = read_block(&block, STDIN_FILENO)) < 0)
-            return -1;
-        if (bytes == 0)
-            break;
+    while ((bytes = read_block(&block, STDIN_FILENO)) > 0) {
         total += bytes;
 
         if (crypto_generichash_update(state, block.data, sizeof(block.data)) < 0)
             die("Unable to update hash");
-
         if (store_block(storefd, &block) < 0)
             die("Unable to store block");
     }
+
+    if (bytes < 0)
+        die("Unable to read block: %s\n", strerror(errno));
 
     if (crypto_generichash_final(state, hash, sizeof(hash)) < 0)
         die("Unable to finalize hash");
