@@ -74,7 +74,7 @@ static int parse_trailer(unsigned char *hash_out, size_t *datalen_out, const cha
     return 0;
 }
 
-static int read_block(int dirfd, char *hash, size_t len)
+static int read_block(struct block *out, int dirfd, char *hash)
 {
     char shard[3];
     int fd, shardfd;
@@ -89,17 +89,8 @@ static int read_block(int dirfd, char *hash, size_t len)
     if ((fd = openat(shardfd, hash + 2, O_RDONLY)) < 0)
         die("Unable to open block '%s': %s\n", hash, strerror(errno));
 
-    while (len) {
-        char block[BLOCK_LEN];
-        ssize_t blocklen = MIN(BLOCK_LEN, len);
-
-        if (read_bytes(fd, block, blocklen) != blocklen)
-            die("Unable to read block '%s': %s\n", hash, strerror(errno));
-        if (write_bytes(STDOUT_FILENO, block, MIN(BLOCK_LEN, len)) < 0)
-            die("Unable to write block '%s': %s\n", hash, strerror(errno));
-
-        len -= blocklen;
-    }
+    if (read_bytes(fd, (char *) out->data, BLOCK_LEN) != BLOCK_LEN)
+        die("Unable to read block '%s': %s\n", hash, strerror(errno));
 
     close(shardfd);
     close(fd);
@@ -109,7 +100,7 @@ static int read_block(int dirfd, char *hash, size_t len)
 int main(int argc, char *argv[])
 {
     unsigned char trailer_hash[HASH_LEN];
-    char *chain = NULL, *haystack, *line;
+    char *chain = NULL, *haystack, *hash;
     char buf[1024];
     size_t total = 0, data_len;
     ssize_t bytes;
@@ -135,21 +126,27 @@ int main(int argc, char *argv[])
         die("Unable to parse trailer\n");
 
     haystack = chain;
-    while ((line = strtok(haystack, "\n")) != NULL) {
+    while ((hash = strtok(haystack, "\n")) != NULL) {
         unsigned char line_hash[HASH_LEN];
+        struct block block;
+        size_t blocklen = MIN(data_len, BLOCK_LEN);
 
-        if (*line == '>')
+        if (*hash == '>')
             break;
 
         if (data_len == 0)
             die("More lines, but all data read\n");
 
-        if (hex2bin(line_hash, sizeof(line_hash), line, strlen(line)) < 0)
-            die("Unable to decode line hash\n");
+        if (hex2bin(line_hash, sizeof(line_hash), hash, strlen(hash)) < 0)
+            die("Unable to decode hash\n");
 
-        if (read_block(dirfd, line, MIN(data_len, BLOCK_LEN)) < 0)
-            die("Unable to read block '%s': %s", line, strerror(errno));
-        data_len -= data_len % BLOCK_LEN;
+        if (read_block(&block, dirfd, hash) < 0)
+            die("Unable to read block '%s': %s", hash, strerror(errno));
+
+        if (write_bytes(STDOUT_FILENO, (char *) block.data, blocklen) < 0)
+            die("Unable to write block '%s': %s\n", hash, strerror(errno));
+
+        data_len -= blocklen;
         haystack = NULL;
     }
 

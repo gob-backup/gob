@@ -29,10 +29,6 @@
 #include "config.h"
 #include "common.h"
 
-struct block {
-    unsigned char data[BLOCK_LEN];
-};
-
 static ssize_t read_block(struct block *out, int fd)
 {
     size_t total = read_bytes(fd, (char *) out->data, sizeof(out->data));
