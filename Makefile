@@ -50,3 +50,8 @@ clean:
 	rm -f sb-decrypt ${DECRYPT_OBJECTS}
 	rm -f sb-encrypt ${ENCRYPT_OBJECTS}
 	rm -f sb-keygen ${KEYGEN_OBJECTS}
+
+.PHONY: install
+install:
+	install -d -m755 ${BINDIR}
+	install -m755 ${PROGRAMS} ${BINDIR}/
