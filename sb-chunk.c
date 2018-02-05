@@ -39,37 +39,21 @@ static ssize_t read_block(struct block *out, int fd)
 static int store_block(int storefd, const struct block *block)
 {
     unsigned char hash[HASH_LEN];
-    char hex[HASH_LEN * 2 + 1], shard[3];
-    int dirfd, fd;
+    char hex[HASH_LEN * 2 + 1];
+    int fd;
 
     if (crypto_generichash(hash, sizeof(hash), block->data, sizeof(block->data), NULL, 0) < 0)
         die("Unable to hash block");
     if (bin2hex(hex, sizeof(hex), hash, sizeof(hash)) < 0)
         die("Unable to convert binary to hex");
 
-    shard[0] = hex[0];
-    shard[1] = hex[1];
-    shard[2] = '\0';
-
-    if ((dirfd = openat(storefd, shard, O_DIRECTORY)) < 0) {
-        if (mkdirat(storefd, shard, 0755) < 0)
-            die_errno("Unable to create sharding directory '%s'", shard);
-        if ((dirfd = openat(storefd, shard, O_DIRECTORY)) < 0)
-            die_errno("Unable to open sharding directory '%s'", shard);
-    }
-
-    if ((fd = openat(dirfd, hex + 2, O_CREAT|O_EXCL|O_WRONLY, 0644)) < 0 && errno != EEXIST)
-        die_errno("Unable to create block '%s'", hex);
-
-    if (fd >= 0) {
+    if ((fd = open_block(storefd, hex, 1)) >= 0) {
         if (write_bytes(fd, (const char *)block->data, sizeof(block->data)) < 0)
             die_errno("Unable to write block '%s'", hex);
+        close(fd);
     }
 
     puts(hex);
-
-    close(fd);
-    close(dirfd);
 
     return 0;
 }

@@ -75,25 +75,16 @@ static int parse_trailer(unsigned char *hash_out, size_t *datalen_out, const cha
     return 0;
 }
 
-static int read_block(struct block *out, int dirfd, char *hash)
+static int read_block(struct block *out, int storefd, char *hash)
 {
-    char shard[3];
-    int fd, shardfd;
+    int fd;
 
-    shard[0] = hash[0];
-    shard[1] = hash[1];
-    shard[2] = '\0';
-
-    if ((shardfd = openat(dirfd, shard, O_DIRECTORY)) < 0)
-        die_errno("Unable to open sharding directory '%s'", shard);
-
-    if ((fd = openat(shardfd, hash + 2, O_RDONLY)) < 0)
+    if ((fd = open_block(storefd, hash, 0)) < 0)
         die_errno("Unable to open block '%s'", hash);
 
     if (read_bytes(fd, (char *) out->data, BLOCK_LEN) != BLOCK_LEN)
         die_errno("Unable to read block '%s'", hash);
 
-    close(shardfd);
     close(fd);
     return 0;
 }
