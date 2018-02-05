@@ -82,7 +82,7 @@ static int read_block(struct block *out, int storefd, char *hash)
     if ((fd = open_block(storefd, hash, 0)) < 0)
         die_errno("Unable to open block '%s'", hash);
 
-    if (read_bytes(fd, (char *) out->data, BLOCK_LEN) != BLOCK_LEN)
+    if (read_bytes(fd, out->data, BLOCK_LEN) != BLOCK_LEN)
         die_errno("Unable to read block '%s'", hash);
 
     close(fd);
@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
     crypto_generichash_state *state = malloc(crypto_generichash_statebytes());
     unsigned char trailer_hash[HASH_LEN], computed_hash[HASH_LEN];
     char *chain = NULL, *haystack, *hash;
-    char buf[1024];
+    unsigned char buf[1024];
     size_t total = 0, data_len;
     ssize_t bytes;
     int storefd;
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
         if (crypto_generichash_update(state, block.data, BLOCK_LEN) < 0)
             die("Unable to update hash");
 
-        if (write_bytes(STDOUT_FILENO, (char *) block.data, blocklen) < 0)
+        if (write_bytes(STDOUT_FILENO, block.data, blocklen) < 0)
             die_errno("Unable to write block '%s'", hash);
 
         data_len -= blocklen;

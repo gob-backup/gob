@@ -24,8 +24,8 @@ struct block {
 void die(const char *fmt, ...);
 void die_errno(const char *fmt, ...);
 
-int read_bytes(int fd, char *buf, size_t buflen);
-int write_bytes(int fd, const char *buf, size_t buflen);
+ssize_t read_bytes(int fd, unsigned char *buf, size_t buflen);
+int write_bytes(int fd, const unsigned char *buf, size_t buflen);
 
 int bin2hex(char *out, size_t outlen, const unsigned char *in, size_t inlen);
 int hex2bin(unsigned char *out, size_t outlen, const char *in, size_t inlen);

@@ -31,7 +31,7 @@
 
 static ssize_t read_block(struct block *out, int fd)
 {
-    size_t total = read_bytes(fd, (char *) out->data, sizeof(out->data));
+    size_t total = read_bytes(fd, out->data, sizeof(out->data));
     memset(out->data + total, 0, sizeof(out->data) - total);
     return total;
 }
@@ -48,7 +48,7 @@ static int store_block(int storefd, const struct block *block)
         die("Unable to convert binary to hex");
 
     if ((fd = open_block(storefd, hex, 1)) >= 0) {
-        if (write_bytes(fd, (const char *)block->data, sizeof(block->data)) < 0)
+        if (write_bytes(fd, block->data, sizeof(block->data)) < 0)
             die_errno("Unable to write block '%s'", hex);
         close(fd);
     }

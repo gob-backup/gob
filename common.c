@@ -52,7 +52,7 @@ void die_errno(const char *fmt, ...)
     exit(1);
 }
 
-int read_bytes(int fd, char *buf, size_t buflen)
+ssize_t read_bytes(int fd, unsigned char *buf, size_t buflen)
 {
     size_t total = 0;
 
@@ -68,7 +68,7 @@ int read_bytes(int fd, char *buf, size_t buflen)
     return buflen;
 }
 
-int write_bytes(int fd, const char *buf, size_t buflen)
+int write_bytes(int fd, const unsigned char *buf, size_t buflen)
 {
     size_t total = 0;
 
