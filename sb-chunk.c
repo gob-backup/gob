@@ -29,13 +29,6 @@
 #include "config.h"
 #include "common.h"
 
-static ssize_t read_block(struct block *out, int fd)
-{
-    size_t total = read_bytes(fd, out->data, sizeof(out->data));
-    memset(out->data + total, 0, sizeof(out->data) - total);
-    return total;
-}
-
 static int store_block(int storefd, const struct block *block)
 {
     unsigned char hash[HASH_LEN];
@@ -77,7 +70,7 @@ int main(int argc, char *argv[])
     if (crypto_generichash_init(state, NULL, 0, HASH_LEN) < 0)
         die("Unable to initialize hashing state");
 
-    while ((bytes = read_block(&block, STDIN_FILENO)) > 0) {
+    while ((bytes = read_bytes(STDIN_FILENO, block.data, sizeof(block.data))) > 0) {
         total += bytes;
 
         if (crypto_generichash_update(state, block.data, sizeof(block.data)) < 0)

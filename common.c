@@ -61,11 +61,12 @@ ssize_t read_bytes(int fd, unsigned char *buf, size_t buflen)
         if (bytes < 0)
             return -1;
         if (bytes == 0)
-            return total;
+            break;
         total += bytes;
     }
 
-    return buflen;
+    memset(buf + total, 0, buflen - total);
+    return total;
 }
 
 int write_bytes(int fd, const unsigned char *buf, size_t buflen)
