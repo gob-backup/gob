@@ -85,8 +85,6 @@ int write_bytes(int fd, const unsigned char *buf, size_t buflen)
 
 int bin2hex(char *out, size_t outlen, const unsigned char *in, size_t inlen)
 {
-    if (inlen != HASH_LEN)
-        return -1;
     if (outlen < HASH_LEN * 2 + 1)
         return -1;
     sodium_bin2hex(out, outlen, in, inlen);
@@ -97,15 +95,13 @@ int hex2bin(unsigned char *out, size_t outlen, const char *in, size_t inlen)
 {
     size_t parsed_len;
 
-    if (outlen != HASH_LEN)
-        return -1;
-    if (inlen != HASH_LEN * 2)
+    if (outlen < (inlen / 2))
         return -1;
 
     if (sodium_hex2bin(out, outlen, in, inlen, NULL, &parsed_len, NULL) < 0)
         return -1;
 
-    if (parsed_len != HASH_LEN)
+    if (parsed_len != outlen)
         return -1;
 
     return 0;
@@ -142,4 +138,22 @@ int open_block(int storefd, const char *hash, char create)
     close(shardfd);
 
     return fd;
+}
+
+int read_key(unsigned char *key, size_t keysize, const char *file)
+{
+    char hex[crypto_aead_chacha20poly1305_KEYBYTES * 2 + 1];
+    ssize_t bytes;
+    int fd;
+
+    if ((fd = open(file, O_RDONLY)) < 0)
+        die_errno("Unable to open keyfile '%s'", file);
+    if ((bytes = read_bytes(fd, (unsigned char *) hex, sizeof(hex))) < 0)
+        die_errno("Unable to read keyfile '%s'", file);
+    if (hex2bin(key, keysize, hex, strlen(hex)) < 0)
+        die("Unable to convert key to hex");
+
+    close(fd);
+
+    return 0;
 }

@@ -1,2 +1,5 @@
 sb-cat
 sb-chunk
+sb-decrypt
+sb-encrypt
+sb-keygen
