@@ -15,6 +15,8 @@
 
 #include <stddef.h>
 
+#include "config.h"
+
 struct block {
     unsigned char data[BLOCK_LEN];
 };
