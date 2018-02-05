@@ -106,12 +106,12 @@ int main(int argc, char *argv[])
     char buf[1024];
     size_t total = 0, data_len;
     ssize_t bytes;
-    int dirfd;
+    int storefd;
 
     if (argc != 2)
         die("USAGE: %s <DIR>", argv[0]);
 
-    if ((dirfd = open(argv[1], O_DIRECTORY)) < 0)
+    if ((storefd = open(argv[1], O_DIRECTORY)) < 0)
         die_errno("Unable to open storage '%s'", argv[1]);
 
     while ((bytes = read_bytes(STDIN_FILENO, buf, sizeof(buf))) > 0) {
@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
         if (hex2bin(line_hash, sizeof(line_hash), hash, strlen(hash)) < 0)
             die("Unable to decode hash");
 
-        if (read_block(&block, dirfd, hash) < 0)
+        if (read_block(&block, storefd, hash) < 0)
             die_errno("Unable to read block '%s'", hash);
 
         if (crypto_generichash_update(state, block.data, BLOCK_LEN) < 0)
@@ -168,6 +168,8 @@ int main(int argc, char *argv[])
         die("Trailer hash does not match computed hash");
 
     free(state);
+
+    close(storefd);
 
     return 0;
 }
