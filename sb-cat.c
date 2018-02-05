@@ -51,27 +51,27 @@ static int parse_trailer(unsigned char *hash_out, size_t *datalen_out, const cha
     int i;
 
     if ((trailer = find_last_line(chain)) == NULL)
-        die("Invalid input without trailer\n");
+        die("Invalid input without trailer");
 
     if (*trailer != '>')
-        die("Last line is not a trailer line\n");
+        die("Last line is not a trailer line");
     trailer++;
 
     for (i = 0; i < (HASH_LEN * 2); i++) {
         char h = *trailer++;
         if (!strchr("0123456789abcdef", h))
-            die("Invalid trailer hash\n");
+            die("Invalid trailer hash");
         hash[i] = h;
     }
 
     if (*trailer != ' ')
-        die("No separator between trailer hash and length\n");
+        die("No separator between trailer hash and length");
 
     if ((*datalen_out = strtol(trailer, NULL, 10)) == 0)
-        die("Invalid data length in trailer\n");
+        die("Invalid data length in trailer");
 
     if (hex2bin(hash_out, HASH_LEN, hash, sizeof(hash)) < 0)
-        die("Unable to decode trailer hash\n");
+        die("Unable to decode trailer hash");
 
     return 0;
 }
@@ -86,13 +86,13 @@ static int read_block(struct block *out, int dirfd, char *hash)
     shard[2] = '\0';
 
     if ((shardfd = openat(dirfd, shard, O_DIRECTORY)) < 0)
-        die("Unable to open sharding directory '%s': %s\n", shard, strerror(errno));
+        die("Unable to open sharding directory '%s': %s", shard, strerror(errno));
 
     if ((fd = openat(shardfd, hash + 2, O_RDONLY)) < 0)
-        die("Unable to open block '%s': %s\n", hash, strerror(errno));
+        die("Unable to open block '%s': %s", hash, strerror(errno));
 
     if (read_bytes(fd, (char *) out->data, BLOCK_LEN) != BLOCK_LEN)
-        die("Unable to read block '%s': %s\n", hash, strerror(errno));
+        die("Unable to read block '%s': %s", hash, strerror(errno));
 
     close(shardfd);
     close(fd);
@@ -110,10 +110,10 @@ int main(int argc, char *argv[])
     int dirfd;
 
     if (argc != 2)
-        die("USAGE: %s <DIR>\n", argv[0]);
+        die("USAGE: %s <DIR>", argv[0]);
 
     if ((dirfd = open(argv[1], O_DIRECTORY)) < 0)
-        die("Unable to open storage '%s': %s\n", argv[1], strerror(errno));
+        die("Unable to open storage '%s': %s", argv[1], strerror(errno));
 
     while ((bytes = read_bytes(STDIN_FILENO, buf, sizeof(buf))) > 0) {
         chain = realloc(chain, total + bytes + 1);
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
         die("Unable to read from stdin: %s", strerror(errno));
 
     if (parse_trailer(trailer_hash, &data_len, chain) < 0)
-        die("Unable to parse trailer\n");
+        die("Unable to parse trailer");
 
     if (crypto_generichash_init(state, NULL, 0, HASH_LEN) < 0)
         die("Unable to initialize hashing state");
@@ -141,10 +141,10 @@ int main(int argc, char *argv[])
             break;
 
         if (data_len == 0)
-            die("More lines, but all data read\n");
+            die("More lines, but all data read");
 
         if (hex2bin(line_hash, sizeof(line_hash), hash, strlen(hash)) < 0)
-            die("Unable to decode hash\n");
+            die("Unable to decode hash");
 
         if (read_block(&block, dirfd, hash) < 0)
             die("Unable to read block '%s': %s", hash, strerror(errno));
@@ -153,20 +153,20 @@ int main(int argc, char *argv[])
             die("Unable to update hash");
 
         if (write_bytes(STDOUT_FILENO, (char *) block.data, blocklen) < 0)
-            die("Unable to write block '%s': %s\n", hash, strerror(errno));
+            die("Unable to write block '%s': %s", hash, strerror(errno));
 
         data_len -= blocklen;
         haystack = NULL;
     }
 
     if (data_len)
-        die("Premature end of chain\n");
+        die("Premature end of chain");
 
     if (crypto_generichash_final(state, computed_hash, sizeof(computed_hash)) < 0)
         die("Unable to finalize hash");
 
     if (memcmp(computed_hash, trailer_hash, sizeof(computed_hash)))
-        die("Trailer hash does not match computed hash\n");
+        die("Trailer hash does not match computed hash");
 
     free(state);
 

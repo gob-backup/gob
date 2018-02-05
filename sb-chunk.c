@@ -53,17 +53,17 @@ static int store_block(int storefd, const struct block *block)
 
     if ((dirfd = openat(storefd, shard, O_DIRECTORY)) < 0) {
         if (mkdirat(storefd, shard, 0755) < 0)
-            die("Unable to create sharding directory '%s': %s\n", shard, strerror(errno));
+            die("Unable to create sharding directory '%s': %s", shard, strerror(errno));
         if ((dirfd = openat(storefd, shard, O_DIRECTORY)) < 0)
-            die("Unable to open sharding directory '%s': %s\n", shard, strerror(errno));
+            die("Unable to open sharding directory '%s': %s", shard, strerror(errno));
     }
 
     if ((fd = openat(dirfd, hex + 2, O_CREAT|O_EXCL|O_WRONLY, 0644)) < 0 && errno != EEXIST)
-        die("Unable to create block '%s': %s\n", hex, strerror(errno));
+        die("Unable to create block '%s': %s", hex, strerror(errno));
 
     if (fd >= 0) {
         if (write_bytes(fd, (const char *)block->data, sizeof(block->data)) < 0)
-            die("Unable to write block '%s': %s\n", hex, strerror(errno));
+            die("Unable to write block '%s': %s", hex, strerror(errno));
     }
 
     puts(hex);
@@ -85,10 +85,10 @@ int main(int argc, char *argv[])
     int storefd;
 
     if (argc != 2)
-        die("USAGE: %s <DIR>\n", argv[0]);
+        die("USAGE: %s <DIR>", argv[0]);
 
     if ((storefd = open(argv[1], O_DIRECTORY)) < 0)
-        die("Unable to open storage '%s': %s\n", argv[1], strerror(errno));
+        die("Unable to open storage '%s': %s", argv[1], strerror(errno));
 
     if (crypto_generichash_init(state, NULL, 0, HASH_LEN) < 0)
         die("Unable to initialize hashing state");
@@ -103,13 +103,13 @@ int main(int argc, char *argv[])
     }
 
     if (bytes < 0)
-        die("Unable to read block: %s\n", strerror(errno));
+        die("Unable to read block: %s", strerror(errno));
 
     if (crypto_generichash_final(state, hash, sizeof(hash)) < 0)
         die("Unable to finalize hash");
 
     if (bin2hex(hex, sizeof(hex), hash, sizeof(hash)) < 0)
-        die("Unable to convert binary to hex\n");
+        die("Unable to convert binary to hex");
 
     printf(">%s %"PRIuMAX"\n", hex, total);
     free(state);
