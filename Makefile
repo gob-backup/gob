@@ -53,5 +53,5 @@ clean:
 
 .PHONY: install
 install:
-	install -d -m755 ${BINDIR}
-	install -m755 ${PROGRAMS} ${BINDIR}/
+	install -d -m 755 ${BINDIR}
+	install -m 755 ${PROGRAMS} ${BINDIR}/
