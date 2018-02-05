@@ -22,6 +22,8 @@ struct block {
 };
 
 void die(const char *fmt, ...);
+void die_errno(const char *fmt, ...);
+
 int read_bytes(int fd, char *buf, size_t buflen);
 int write_bytes(int fd, const char *buf, size_t buflen);
 

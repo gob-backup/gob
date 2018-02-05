@@ -13,9 +13,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include <sodium.h>
@@ -31,6 +33,18 @@ void die(const char *fmt, ...)
     vfprintf(stderr, fmt, ap);
     va_end(ap);
     putc('\n', stderr);
+
+    exit(1);
+}
+
+void die_errno(const char *fmt, ...)
+{
+    va_list ap;
+
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);
+    va_end(ap);
+    fprintf(stderr, ": %s\n", strerror(errno));
 
     exit(1);
 }

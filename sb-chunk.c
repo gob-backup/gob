@@ -53,17 +53,17 @@ static int store_block(int storefd, const struct block *block)
 
     if ((dirfd = openat(storefd, shard, O_DIRECTORY)) < 0) {
         if (mkdirat(storefd, shard, 0755) < 0)
-            die("Unable to create sharding directory '%s': %s", shard, strerror(errno));
+            die_errno("Unable to create sharding directory '%s'", shard);
         if ((dirfd = openat(storefd, shard, O_DIRECTORY)) < 0)
-            die("Unable to open sharding directory '%s': %s", shard, strerror(errno));
+            die_errno("Unable to open sharding directory '%s'", shard);
     }
 
     if ((fd = openat(dirfd, hex + 2, O_CREAT|O_EXCL|O_WRONLY, 0644)) < 0 && errno != EEXIST)
-        die("Unable to create block '%s': %s", hex, strerror(errno));
+        die_errno("Unable to create block '%s'", hex);
 
     if (fd >= 0) {
         if (write_bytes(fd, (const char *)block->data, sizeof(block->data)) < 0)
-            die("Unable to write block '%s': %s", hex, strerror(errno));
+            die_errno("Unable to write block '%s'", hex);
     }
 
     puts(hex);
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
         die("USAGE: %s <DIR>", argv[0]);
 
     if ((storefd = open(argv[1], O_DIRECTORY)) < 0)
-        die("Unable to open storage '%s': %s", argv[1], strerror(errno));
+        die_errno("Unable to open storage '%s'", argv[1]);
 
     if (crypto_generichash_init(state, NULL, 0, HASH_LEN) < 0)
         die("Unable to initialize hashing state");
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
     }
 
     if (bytes < 0)
-        die("Unable to read block: %s", strerror(errno));
+        die_errno("Unable to read block");
 
     if (crypto_generichash_final(state, hash, sizeof(hash)) < 0)
         die("Unable to finalize hash");

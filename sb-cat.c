@@ -13,7 +13,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <errno.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -86,13 +85,13 @@ static int read_block(struct block *out, int dirfd, char *hash)
     shard[2] = '\0';
 
     if ((shardfd = openat(dirfd, shard, O_DIRECTORY)) < 0)
-        die("Unable to open sharding directory '%s': %s", shard, strerror(errno));
+        die_errno("Unable to open sharding directory '%s'", shard);
 
     if ((fd = openat(shardfd, hash + 2, O_RDONLY)) < 0)
-        die("Unable to open block '%s': %s", hash, strerror(errno));
+        die_errno("Unable to open block '%s'", hash);
 
     if (read_bytes(fd, (char *) out->data, BLOCK_LEN) != BLOCK_LEN)
-        die("Unable to read block '%s': %s", hash, strerror(errno));
+        die_errno("Unable to read block '%s'", hash);
 
     close(shardfd);
     close(fd);
@@ -113,7 +112,7 @@ int main(int argc, char *argv[])
         die("USAGE: %s <DIR>", argv[0]);
 
     if ((dirfd = open(argv[1], O_DIRECTORY)) < 0)
-        die("Unable to open storage '%s': %s", argv[1], strerror(errno));
+        die_errno("Unable to open storage '%s'", argv[1]);
 
     while ((bytes = read_bytes(STDIN_FILENO, buf, sizeof(buf))) > 0) {
         chain = realloc(chain, total + bytes + 1);
@@ -123,7 +122,7 @@ int main(int argc, char *argv[])
     }
 
     if (bytes < 0)
-        die("Unable to read from stdin: %s", strerror(errno));
+        die_errno("Unable to read from stdin");
 
     if (parse_trailer(trailer_hash, &data_len, chain) < 0)
         die("Unable to parse trailer");
@@ -147,13 +146,13 @@ int main(int argc, char *argv[])
             die("Unable to decode hash");
 
         if (read_block(&block, dirfd, hash) < 0)
-            die("Unable to read block '%s': %s", hash, strerror(errno));
+            die_errno("Unable to read block '%s'", hash);
 
         if (crypto_generichash_update(state, block.data, BLOCK_LEN) < 0)
             die("Unable to update hash");
 
         if (write_bytes(STDOUT_FILENO, (char *) block.data, blocklen) < 0)
-            die("Unable to write block '%s': %s", hash, strerror(errno));
+            die_errno("Unable to write block '%s'", hash);
 
         data_len -= blocklen;
         haystack = NULL;
