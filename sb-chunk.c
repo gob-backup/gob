@@ -29,19 +29,19 @@
 #include "config.h"
 #include "common.h"
 
-static int store_block(int storefd, const struct block *block)
+static int store_block(int storefd, unsigned char *block, size_t blocklen)
 {
     unsigned char hash[HASH_LEN];
     char hex[HASH_LEN * 2 + 1];
     int fd;
 
-    if (crypto_generichash(hash, sizeof(hash), block->data, sizeof(block->data), NULL, 0) < 0)
+    if (crypto_generichash(hash, sizeof(hash), block, blocklen, NULL, 0) < 0)
         die("Unable to hash block");
     if (bin2hex(hex, sizeof(hex), hash, sizeof(hash)) < 0)
         die("Unable to convert binary to hex");
 
     if ((fd = open_block(storefd, hex, 1)) >= 0) {
-        if (write_bytes(fd, block->data, sizeof(block->data)) < 0)
+        if (write_bytes(fd, block, blocklen) < 0)
             die_errno("Unable to write block '%s'", hex);
         close(fd);
     }
@@ -54,7 +54,7 @@ static int store_block(int storefd, const struct block *block)
 int main(int argc, char *argv[])
 {
     crypto_generichash_state *state = malloc(crypto_generichash_statebytes());
-    struct block block;
+    unsigned char block[BLOCK_LEN];
     unsigned char hash[HASH_LEN];
     char hex[HASH_LEN * 2 + 1];
     size_t total = 0;
@@ -70,12 +70,12 @@ int main(int argc, char *argv[])
     if (crypto_generichash_init(state, NULL, 0, HASH_LEN) < 0)
         die("Unable to initialize hashing state");
 
-    while ((bytes = read_bytes(STDIN_FILENO, block.data, sizeof(block.data))) > 0) {
+    while ((bytes = read_bytes(STDIN_FILENO, block, BLOCK_LEN)) > 0) {
         total += bytes;
 
-        if (crypto_generichash_update(state, block.data, sizeof(block.data)) < 0)
+        if (crypto_generichash_update(state, block, BLOCK_LEN) < 0)
             die("Unable to update hash");
-        if (store_block(storefd, &block) < 0)
+        if (store_block(storefd, block, BLOCK_LEN) < 0)
             die("Unable to store block");
     }
 
