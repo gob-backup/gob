@@ -75,14 +75,14 @@ static int parse_trailer(unsigned char *hash_out, size_t *datalen_out, const cha
     return 0;
 }
 
-static int read_block(struct block *out, int storefd, char *hash)
+static int read_block(unsigned char *out, size_t outlen, int storefd, char *hash)
 {
     int fd;
 
     if ((fd = open_block(storefd, hash, 0)) < 0)
         die_errno("Unable to open block '%s'", hash);
 
-    if (read_bytes(fd, out->data, BLOCK_LEN) != BLOCK_LEN)
+    if (read_bytes(fd, out, outlen) != (ssize_t) outlen)
         die_errno("Unable to read block '%s'", hash);
 
     close(fd);
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
     haystack = chain;
     while ((hash = strtok(haystack, "\n")) != NULL) {
         unsigned char line_hash[HASH_LEN];
-        struct block block;
+        unsigned char block[BLOCK_LEN];
         size_t blocklen = MIN(data_len, BLOCK_LEN);
 
         if (*hash == '>')
@@ -136,13 +136,13 @@ int main(int argc, char *argv[])
         if (hex2bin(line_hash, sizeof(line_hash), hash, strlen(hash)) < 0)
             die("Unable to decode hash");
 
-        if (read_block(&block, storefd, hash) < 0)
+        if (read_block(block, BLOCK_LEN, storefd, hash) < 0)
             die_errno("Unable to read block '%s'", hash);
 
-        if (crypto_generichash_update(state, block.data, BLOCK_LEN) < 0)
+        if (crypto_generichash_update(state, block, BLOCK_LEN) < 0)
             die("Unable to update hash");
 
-        if (write_bytes(STDOUT_FILENO, block.data, blocklen) < 0)
+        if (write_bytes(STDOUT_FILENO, block, blocklen) < 0)
             die_errno("Unable to write block '%s'", hash);
 
         data_len -= blocklen;
