@@ -75,6 +75,29 @@ static int parse_trailer(unsigned char *hash_out, size_t *datalen_out, const cha
     return 0;
 }
 
+static char *read_index(unsigned char *hash_out, size_t *size_out)
+{
+    unsigned char buf[1024];
+    char *chain = NULL;
+    ssize_t bytes;
+    size_t total = 0;
+
+    while ((bytes = read_bytes(STDIN_FILENO, buf, sizeof(buf))) > 0) {
+        chain = realloc(chain, total + bytes + 1);
+        memcpy(chain + total, buf, bytes);
+        total += bytes;
+        chain[total] = '\0';
+    }
+
+    if (bytes < 0)
+        die_errno("Unable to read from stdin");
+
+    if (parse_trailer(hash_out, size_out, chain) < 0)
+        die("Unable to parse trailer");
+
+    return chain;
+}
+
 static int read_block(unsigned char *out, size_t outlen, int storefd, char *hash)
 {
     int fd;
@@ -94,9 +117,7 @@ int main(int argc, char *argv[])
     crypto_generichash_state *state = malloc(crypto_generichash_statebytes());
     unsigned char trailer_hash[HASH_LEN], computed_hash[HASH_LEN];
     char *chain = NULL, *haystack, *hash;
-    unsigned char buf[1024];
-    size_t total = 0, data_len;
-    ssize_t bytes;
+    size_t data_len;
     int storefd;
 
     if (argc != 2)
@@ -105,18 +126,8 @@ int main(int argc, char *argv[])
     if ((storefd = open(argv[1], O_DIRECTORY)) < 0)
         die_errno("Unable to open storage '%s'", argv[1]);
 
-    while ((bytes = read_bytes(STDIN_FILENO, buf, sizeof(buf))) > 0) {
-        chain = realloc(chain, total + bytes + 1);
-        memcpy(chain + total, buf, bytes);
-        total += bytes;
-        chain[total] = '\0';
-    }
-
-    if (bytes < 0)
-        die_errno("Unable to read from stdin");
-
-    if (parse_trailer(trailer_hash, &data_len, chain) < 0)
-        die("Unable to parse trailer");
+    if ((chain = read_index(trailer_hash, &data_len)) == NULL)
+        die("Unable to read index");
 
     if (crypto_generichash_init(state, NULL, 0, HASH_LEN) < 0)
         die("Unable to initialize hashing state");
