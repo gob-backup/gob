@@ -54,7 +54,7 @@ static int store_block(int storefd, unsigned char *block, size_t blocklen)
 int main(int argc, char *argv[])
 {
     crypto_generichash_state *state = malloc(crypto_generichash_statebytes());
-    unsigned char block[BLOCK_LEN];
+    unsigned char *block = malloc(BLOCK_LEN);
     unsigned char hash[HASH_LEN];
     char hex[HASH_LEN * 2 + 1];
     size_t total = 0;
@@ -89,7 +89,9 @@ int main(int argc, char *argv[])
         die("Unable to convert binary to hex");
 
     printf(">%s %"PRIuMAX"\n", hex, total);
+
     free(state);
+    free(block);
     close(storefd);
 
     return 0;
