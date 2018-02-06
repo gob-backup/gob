@@ -22,11 +22,14 @@
 #include "config.h"
 #include "common.h"
 
+#define PLAIN_LEN (BLOCK_LEN - crypto_aead_chacha20poly1305_ABYTES)
+
 int main(int argc, char *argv[])
 {
     unsigned char key[crypto_aead_chacha20poly1305_KEYBYTES];
     unsigned char nonce[crypto_aead_chacha20poly1305_NPUBBYTES];
-    unsigned char plain[BLOCK_LEN - crypto_aead_chacha20poly1305_ABYTES];
+    unsigned char *plain = malloc(PLAIN_LEN);
+    unsigned char *cipher = malloc(BLOCK_LEN);
     ssize_t plainlen;
 
     if (argc < 2)
@@ -40,8 +43,7 @@ int main(int argc, char *argv[])
 
     memset(nonce, 0, sizeof(nonce));
 
-    while ((plainlen = read_bytes(STDIN_FILENO, plain, sizeof(plain))) > 0) {
-        unsigned char cipher[BLOCK_LEN];
+    while ((plainlen = read_bytes(STDIN_FILENO, plain, PLAIN_LEN)) > 0) {
         size_t cipherlen;
 
         if (crypto_aead_chacha20poly1305_encrypt(cipher, (void *) &cipherlen,
@@ -56,6 +58,9 @@ int main(int argc, char *argv[])
 
     if (plainlen < 0)
         die_errno("Unable to read from stdin");
+
+    free(plain);
+    free(cipher);
 
     return 0;
 }
