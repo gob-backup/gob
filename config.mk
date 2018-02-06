@@ -3,6 +3,5 @@ BINDIR := $(DESTDIR)$(PREFIX)/bin
 
 CC ?= gcc
 
-CFLAGS   += -Wall -Wextra -pedantic -std=c90
-CPPFLAGS += $(shell pkg-config --cflags libsodium)
-LDFLAGS  += $(shell pkg-config --libs libsodium)
+CFLAGS   := $(shell pkg-config --cflags libsodium) -Wall -Wextra -pedantic -std=c90 ${CFLAGS}
+LDFLAGS  := $(shell pkg-config --libs libsodium) ${LDFLAGS}
