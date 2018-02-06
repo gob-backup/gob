@@ -13,5 +13,5 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define BLOCK_LEN 4096
+#define BLOCK_LEN (4096 * 1024)
 #define HASH_LEN  16
