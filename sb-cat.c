@@ -116,6 +116,7 @@ int main(int argc, char *argv[])
 {
     crypto_generichash_state *state = malloc(crypto_generichash_statebytes());
     unsigned char trailer_hash[HASH_LEN], computed_hash[HASH_LEN];
+    unsigned char *block = malloc(BLOCK_LEN);
     char *chain = NULL, *haystack, *hash;
     size_t data_len;
     int storefd;
@@ -135,7 +136,6 @@ int main(int argc, char *argv[])
     haystack = chain;
     while ((hash = strtok(haystack, "\n")) != NULL) {
         unsigned char line_hash[HASH_LEN];
-        unsigned char block[BLOCK_LEN];
         size_t blocklen = MIN(data_len, BLOCK_LEN);
 
         if (*hash == '>')
@@ -170,6 +170,7 @@ int main(int argc, char *argv[])
         die("Trailer hash does not match computed hash");
 
     free(state);
+    free(block);
 
     close(storefd);
 
