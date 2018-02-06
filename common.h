@@ -18,10 +18,6 @@
 
 #include "config.h"
 
-struct block {
-    unsigned char data[BLOCK_LEN];
-};
-
 void die(const char *fmt, ...);
 void die_errno(const char *fmt, ...);
 
