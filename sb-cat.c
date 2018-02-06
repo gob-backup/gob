@@ -147,10 +147,10 @@ int main(int argc, char *argv[])
         if (hex2bin(line_hash, sizeof(line_hash), hash, strlen(hash)) < 0)
             die("Unable to decode hash");
 
-        if (read_block(block, BLOCK_LEN, storefd, hash) < 0)
+        if (read_block(block, blocklen, storefd, hash) < 0)
             die_errno("Unable to read block '%s'", hash);
 
-        if (crypto_generichash_update(state, block, BLOCK_LEN) < 0)
+        if (crypto_generichash_update(state, block, blocklen) < 0)
             die("Unable to update hash");
 
         if (write_bytes(STDOUT_FILENO, block, blocklen) < 0)

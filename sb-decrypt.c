@@ -50,7 +50,6 @@ int main(int argc, char *argv[])
                 cipher, cipherlen, NULL, 0, nonce, key) < 0)
             die("Unable to encrypt plaintext");
 
-        memset(plain + plainlen, 0, PLAIN_LEN - plainlen);
         if (write_bytes(STDOUT_FILENO, plain, plainlen) < 0)
             die_errno("Unable to write ciphertext to stdout");
 

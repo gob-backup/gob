@@ -65,7 +65,6 @@ ssize_t read_bytes(int fd, unsigned char *buf, size_t buflen)
         total += bytes;
     }
 
-    memset(buf + total, 0, buflen - total);
     return total;
 }
 

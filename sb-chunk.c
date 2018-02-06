@@ -73,9 +73,9 @@ int main(int argc, char *argv[])
     while ((bytes = read_bytes(STDIN_FILENO, block, BLOCK_LEN)) > 0) {
         total += bytes;
 
-        if (crypto_generichash_update(state, block, BLOCK_LEN) < 0)
+        if (crypto_generichash_update(state, block, bytes) < 0)
             die("Unable to update hash");
-        if (store_block(storefd, block, BLOCK_LEN) < 0)
+        if (store_block(storefd, block, bytes) < 0)
             die("Unable to store block");
     }
 
