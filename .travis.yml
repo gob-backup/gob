@@ -1,0 +1,32 @@
+language: c
+
+dist: trusty
+sudo: false
+
+addons:
+  apt:
+    sources:
+     - sourceline: 'ppa:chris-lea/libsodium'
+    packages:
+     - libsodium-dev
+
+os:
+  - linux
+  - osx
+
+compiler:
+  - gcc
+  - clang
+
+install:
+  - if test ${TRAVIS_OS_NAME} = "osx"; then brew install libsodium; fi
+
+script:
+  - make
+
+after_success:
+  - PREFIX=${HOME}/dest install
+
+branches:
+ only:
+   - master

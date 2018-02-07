@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
         if (write_bytes(STDOUT_FILENO, cipher, BLOCK_LEN) < 0)
             die_errno("Unable to write ciphertext to stdout");
 
-        sodium_increment(nonce, sizeof(nonce));
+        increment(nonce, sizeof(nonce));
     }
 
     if (plainlen < 0)

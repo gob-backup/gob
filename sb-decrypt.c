@@ -14,6 +14,7 @@
  */
 
 #include <fcntl.h>
+#include <inttypes.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -59,7 +60,7 @@ int main(int argc, char *argv[])
         if (write_bytes(STDOUT_FILENO, plain + sizeof(uint32_t), plainlen) < 0)
             die_errno("Unable to write ciphertext to stdout");
 
-        sodium_increment(nonce, sizeof(nonce));
+        increment(nonce, sizeof(nonce));
     }
 
     if (cipherlen > 0)

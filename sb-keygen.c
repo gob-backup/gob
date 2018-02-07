@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     if (sodium_init() < 0)
         die("Unable to initialize libsodium");
 
-    crypto_aead_chacha20poly1305_keygen(key);
+    randombytes_buf(key, sizeof(key));
 
     if (bin2hex(hex, sizeof(hex), key, sizeof(key)) < 0)
         die("Unable to convert key to hex");

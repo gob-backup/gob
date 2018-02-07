@@ -30,3 +30,5 @@ int hex2bin(unsigned char *out, size_t outlen, const char *in, size_t inlen);
 int open_block(int storefd, const char *hash, char create);
 
 int read_key(unsigned char *key, size_t keysize, const char *file);
+
+void increment(unsigned char *bytes, size_t len);

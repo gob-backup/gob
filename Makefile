@@ -21,23 +21,23 @@ all: ${PROGRAMS}
 
 sb-chunk: ${CHUNK_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $^
+	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
 
 sb-cat: ${CAT_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $^
+	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
 
 sb-decrypt: ${DECRYPT_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $^
+	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
 
 sb-encrypt: ${ENCRYPT_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $^
+	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
 
 sb-keygen: ${KEYGEN_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $^
+	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
 
 %.o: %.c config.h
 	@echo "CC $@"
@@ -53,5 +53,5 @@ clean:
 
 .PHONY: install
 install:
-	install -d -m755 ${BINDIR}
-	install -m755 ${PROGRAMS} ${BINDIR}/
+	install -d -m 755 ${BINDIR}
+	install -m 755 ${PROGRAMS} ${BINDIR}/

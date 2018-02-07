@@ -14,8 +14,8 @@
  */
 
 #include <sys/stat.h>
+#include <sys/types.h>
 
-#include <errno.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
@@ -57,6 +57,7 @@ int main(int argc, char *argv[])
     unsigned char *block = malloc(BLOCK_LEN);
     unsigned char hash[HASH_LEN];
     char hex[HASH_LEN * 2 + 1];
+    struct stat st;
     size_t total = 0;
     ssize_t bytes;
     int storefd;
@@ -64,8 +65,11 @@ int main(int argc, char *argv[])
     if (argc != 2)
         die("USAGE: %s <DIR>", argv[0]);
 
-    if ((storefd = open(argv[1], O_DIRECTORY)) < 0)
+    if ((storefd = open(argv[1], O_RDONLY)) < 0)
         die_errno("Unable to open storage '%s'", argv[1]);
+
+    if (fstat(storefd, &st) < 0 || !S_ISDIR(st.st_mode))
+        die("Storage is not a directory");
 
     if (crypto_generichash_init(state, NULL, 0, HASH_LEN) < 0)
         die("Unable to initialize hashing state");
