@@ -23,9 +23,8 @@ install:
 
 script:
   - make
-
-after_success:
-  - PREFIX=${HOME}/dest install
+  - make test
+  - PREFIX="${HOME}/dest" make install
 
 branches:
  only:
