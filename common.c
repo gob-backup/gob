@@ -108,6 +108,7 @@ int hex2bin(unsigned char *out, size_t outlen, const char *in, size_t inlen)
 
 int open_block(int storefd, const char *hash, char create)
 {
+    struct stat st;
     char shard[3];
     int fd, shardfd;
 
@@ -115,16 +116,19 @@ int open_block(int storefd, const char *hash, char create)
     shard[1] = hash[1];
     shard[2] = '\0';
 
-    if ((shardfd = openat(storefd, shard, O_DIRECTORY)) < 0) {
+    if ((shardfd = openat(storefd, shard, O_RDONLY)) < 0) {
         if (create) {
             if (mkdirat(storefd, shard, 0755) < 0)
                 die_errno("Unable to create sharding directory '%s'", shard);
-            if ((shardfd = openat(storefd, shard, O_DIRECTORY)) < 0)
+            if ((shardfd = openat(storefd, shard, O_RDONLY)) < 0)
                 die_errno("Unable to open sharding directory '%s'", shard);
         } else {
             die_errno("Unable to open sharding directory '%s'", shard);
         }
     }
+
+    if (fstat(storefd, &st) < 0 || !S_ISDIR(st.st_mode))
+        die("Storage is not a directory");
 
     if (create) {
         fd = openat(shardfd, hash + 2, O_CREAT|O_EXCL|O_WRONLY, 0644);
