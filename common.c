@@ -156,3 +156,15 @@ int read_key(unsigned char *key, size_t keysize, const char *file)
 
     return 0;
 }
+
+void increment(unsigned char *bytes, size_t len)
+{
+    uint16_t c = 1;
+    size_t i;
+
+    for (i = 0; i < len; i++) {
+        c += (uint16_t) bytes[i];
+        bytes[i] = (unsigned char) c;
+        c >>= 8;
+    }
+}
