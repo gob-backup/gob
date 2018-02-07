@@ -72,6 +72,24 @@ test_expect_success 'keygen avoids overwriting existing key' '
 	assert_failure sb-keygen key
 '
 
+test_expect_success 'encryption generates fixed blocksize' '
+	echo test | sb-encrypt key | wc -c >actual &&
+	echo $((4096 * 1024)) >expected &&
+	assert_files_equal actual expected
+'
+
+test_expect_success 'encryption generates multiples of blocksize' '
+	dd if=/dev/zero bs=$((4096 * 1025)) count=1 | sb-encrypt key | wc -c >actual &&
+	echo $((4096 * 1024 * 2)) >expected &&
+	assert_files_equal actual expected
+'
+
+test_expect_success 'key generates deterministic sequence' '
+	dd if=/dev/zero bs=$((4096 * 1025)) count=1 | sb-encrypt key >expected &&
+	dd if=/dev/zero bs=$((4096 * 1025)) count=1 | sb-encrypt key >actual &&
+	assert_files_equal actual expected
+'
+
 test_expect_success 'encryption and decryption roundtrips' '
 	assert_equal $(echo test | sb-encrypt key | sb-decrypt key) test
 '
