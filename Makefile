@@ -43,6 +43,10 @@ sb-keygen: ${KEYGEN_OBJECTS}
 	@echo "CC $@"
 	@${CC} -c ${CFLAGS} ${CPPFLAGS} -o $@ $<
 
+.PHONY: test
+test: ${PROGRAMS}
+	@./test.sh
+
 .PHONY: clean
 clean:
 	rm -f sb-cat ${CAT_OBJECTS}
