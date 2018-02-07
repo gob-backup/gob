@@ -17,6 +17,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <arpa/inet.h>
+
 #include <sodium.h>
 
 #include "config.h"
@@ -43,14 +45,17 @@ int main(int argc, char *argv[])
 
     memset(nonce, 0, sizeof(nonce));
 
-    while ((plainlen = read_bytes(STDIN_FILENO, plain, PLAIN_LEN)) > 0) {
-        size_t cipherlen;
+    while ((plainlen = read_bytes(STDIN_FILENO, plain + sizeof(uint32_t),
+                    PLAIN_LEN - sizeof(uint32_t))) > 0)
+    {
+        *(uint32_t *) plain = htonl(plainlen);
+        memset(plain + sizeof(uint32_t) + plainlen, 0, PLAIN_LEN - sizeof(uint32_t) - plainlen);
 
-        if (crypto_aead_chacha20poly1305_encrypt(cipher, (void *) &cipherlen,
-                plain, plainlen, NULL, 0, NULL, nonce, key) < 0)
+        if (crypto_aead_chacha20poly1305_encrypt(cipher, NULL,
+                plain, PLAIN_LEN, NULL, 0, NULL, nonce, key) < 0)
             die("Unable to encrypt plaintext");
 
-        if (write_bytes(STDOUT_FILENO, cipher, cipherlen) < 0)
+        if (write_bytes(STDOUT_FILENO, cipher, BLOCK_LEN) < 0)
             die_errno("Unable to write ciphertext to stdout");
 
         sodium_increment(nonce, sizeof(nonce));
