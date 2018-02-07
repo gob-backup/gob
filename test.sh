@@ -72,6 +72,10 @@ test_expect_success 'keygen avoids overwriting existing key' '
 	assert_failure sb-keygen key
 '
 
+test_expect_success 'generate a deterministic key' '
+	echo -n 8f1cce617550ebb227730bbf5d67a56a0692df2002dd29ea0629604400ebeb77 >key
+'
+
 test_expect_success 'encryption generates fixed blocksize' '
 	echo test | sb-encrypt key | wc -c >actual &&
 	echo $((4096 * 1024)) >expected &&
