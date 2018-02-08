@@ -145,7 +145,7 @@ int open_block(int storefd, const char *hash, char create)
 
 int read_key(unsigned char *key, size_t keysize, const char *file)
 {
-    char hex[crypto_aead_chacha20poly1305_KEYBYTES * 2 + 1];
+    char hex[MASTER_KEY_LEN * 2 + 1];
     ssize_t bytes;
     int fd;
 
@@ -159,16 +159,4 @@ int read_key(unsigned char *key, size_t keysize, const char *file)
     close(fd);
 
     return 0;
-}
-
-void increment(unsigned char *bytes, size_t len)
-{
-    uint16_t c = 1;
-    size_t i;
-
-    for (i = 0; i < len; i++) {
-        c += (uint16_t) bytes[i];
-        bytes[i] = (unsigned char) c;
-        c >>= 8;
-    }
 }

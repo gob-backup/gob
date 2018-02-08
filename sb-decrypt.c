@@ -25,15 +25,13 @@
 #include "config.h"
 #include "common.h"
 
-#define PLAIN_LEN (BLOCK_LEN - crypto_aead_chacha20poly1305_ABYTES)
-
 int main(int argc, char *argv[])
 {
-    unsigned char key[crypto_aead_chacha20poly1305_KEYBYTES];
-    unsigned char nonce[crypto_aead_chacha20poly1305_NPUBBYTES];
-    unsigned char *cipher = malloc(BLOCK_LEN);
-    unsigned char *plain = malloc(PLAIN_LEN);
-    ssize_t cipherlen;
+    unsigned char masterkey[MASTER_KEY_LEN];
+    unsigned char encryptionkey[ENCRYPTION_KEY_LEN];
+    unsigned char *cipher = malloc(CIPHER_BLOCK_LEN);
+    unsigned char *plain = malloc(PLAIN_BLOCK_LEN);
+    ssize_t bytes;
 
     if (argc < 2)
         die("USAGE: %s <KEYFILE>", argv[0]);
@@ -41,31 +39,30 @@ int main(int argc, char *argv[])
     if (sodium_init() < 0)
         die("Unable to initialize libsodium");
 
-    if (read_key(key, sizeof(key), argv[1]) < 0)
+    if (read_key(masterkey, sizeof(masterkey), argv[1]) < 0)
         die("Unable to read keyfile '%s'", argv[1]);
 
-    memset(nonce, 0, sizeof(nonce));
+    if (crypto_kdf_derive_from_key(encryptionkey, sizeof(encryptionkey), 1, "sb-ncryp", masterkey) < 0)
+        die("Unable do derive encryption key");
 
-    while ((cipherlen = read_bytes(STDIN_FILENO, cipher, BLOCK_LEN)) == BLOCK_LEN) {
+    while ((bytes = read_bytes(STDIN_FILENO, cipher, CIPHER_BLOCK_LEN)) == CIPHER_BLOCK_LEN) {
         uint32_t plainlen;
 
         if (crypto_aead_chacha20poly1305_decrypt(plain, NULL, NULL,
-                cipher, cipherlen, NULL, 0, nonce, key) < 0)
-            die("Unable to encrypt plaintext");
+                cipher + NONCE_LEN, CIPHER_DATA_LEN, NULL, 0, cipher, encryptionkey) < 0)
+            die("Unable to decrypt plaintext");
 
         plainlen = ntohl(*(uint32_t *) plain);
-        if (plainlen > PLAIN_LEN - sizeof(uint32_t))
+        if (plainlen > PLAIN_DATA_LEN)
             die("Invalid encoded length of %"PRIu32, plainlen);
 
         if (write_bytes(STDOUT_FILENO, plain + sizeof(uint32_t), plainlen) < 0)
             die_errno("Unable to write ciphertext to stdout");
-
-        increment(nonce, sizeof(nonce));
     }
 
-    if (cipherlen > 0)
+    if (bytes > 0)
         die("Block too short");
-    if (cipherlen < 0)
+    if (bytes < 0)
         die_errno("Unable to read from stdin");
 
     return 0;
