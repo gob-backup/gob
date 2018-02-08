@@ -55,12 +55,13 @@ int main(int argc, char *argv[])
     {
         crypto_generichash_state state;
         size_t cipherlen;
+        uint32_t ncnt = htonl(cnt);
 
         *(uint32_t *) plain = htonl(bytes);
         memset(plain + bytes + PLAIN_META_LEN, 0, PLAIN_DATA_LEN - bytes);
 
         if (crypto_generichash_init(&state, noncekey, sizeof(noncekey), NONCE_LEN) < 0 ||
-                crypto_generichash_update(&state, (unsigned char *) &cnt, sizeof(cnt)) < 0 ||
+                crypto_generichash_update(&state, (unsigned char *) &ncnt, sizeof(ncnt)) < 0 ||
                 crypto_generichash_update(&state, plain, bytes) < 0 ||
                 crypto_generichash_final(&state, cipher, NONCE_LEN))
             die("Unable to derive nonce");
