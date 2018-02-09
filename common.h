@@ -31,6 +31,14 @@
 #define CIPHER_BLOCK_LEN (BLOCK_LEN)
 #define CIPHER_DATA_LEN  (CIPHER_BLOCK_LEN - NONCE_LEN)
 
+struct nonce_key {
+    unsigned char data[NONCE_KEY_LEN];
+};
+
+struct encrypt_key {
+    unsigned char data[ENCRYPTION_KEY_LEN];
+};
+
 void die(const char *fmt, ...);
 void die_errno(const char *fmt, ...);
 
@@ -42,4 +50,4 @@ int hex2bin(unsigned char *out, size_t outlen, const char *in, size_t inlen);
 
 int open_block(int storefd, const char *hash, char create);
 
-int read_key(unsigned char *key, size_t keysize, const char *file);
+int read_keys(struct nonce_key *nout, struct encrypt_key *cout, const char *file);

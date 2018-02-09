@@ -27,11 +27,10 @@
 
 int main(int argc, char *argv[])
 {
-    unsigned char masterkey[MASTER_KEY_LEN];
-    unsigned char encryptionkey[ENCRYPTION_KEY_LEN];
-    unsigned char noncekey[NONCE_KEY_LEN];
     unsigned char *plain = malloc(PLAIN_BLOCK_LEN);
     unsigned char *cipher = malloc(CIPHER_BLOCK_LEN);
+    struct encrypt_key enckey;
+    struct nonce_key noncekey;
     uint32_t cnt = 0;
     ssize_t bytes;
 
@@ -41,14 +40,8 @@ int main(int argc, char *argv[])
     if (sodium_init() < 0)
         die("Unable to initialize libsodium");
 
-    if (read_key(masterkey, sizeof(masterkey), argv[1]) < 0)
+    if (read_keys(&noncekey, &enckey, argv[1]) < 0)
         die("Unable to read keyfile '%s'", argv[1]);
-
-    if (crypto_kdf_derive_from_key(encryptionkey, sizeof(encryptionkey), 1, "sb-ncryp", masterkey) < 0)
-        die("Unable do derive encryption key");
-
-    if (crypto_kdf_derive_from_key(noncekey, sizeof(noncekey), 2, "sb-nonce", masterkey) < 0)
-        die("Unable do derive nonce key");
 
     while ((bytes = read_bytes(STDIN_FILENO, plain + sizeof(uint32_t),
                     PLAIN_DATA_LEN)) > 0)
@@ -60,14 +53,14 @@ int main(int argc, char *argv[])
         *(uint32_t *) plain = htonl(bytes);
         memset(plain + bytes + PLAIN_META_LEN, 0, PLAIN_DATA_LEN - bytes);
 
-        if (crypto_generichash_init(&state, noncekey, sizeof(noncekey), NONCE_LEN) < 0 ||
+        if (crypto_generichash_init(&state, noncekey.data, sizeof(noncekey.data), NONCE_LEN) < 0 ||
                 crypto_generichash_update(&state, (unsigned char *) &ncnt, sizeof(ncnt)) < 0 ||
                 crypto_generichash_update(&state, plain, bytes) < 0 ||
                 crypto_generichash_final(&state, cipher, NONCE_LEN))
             die("Unable to derive nonce");
 
         if (crypto_aead_chacha20poly1305_encrypt(cipher + NONCE_LEN, (void *) &cipherlen,
-                plain, PLAIN_BLOCK_LEN, NULL, 0, NULL, cipher, encryptionkey) < 0)
+                plain, PLAIN_BLOCK_LEN, NULL, 0, NULL, cipher, enckey.data) < 0)
             die("Unable to encrypt plaintext");
 
         if (cipherlen + NONCE_LEN != CIPHER_BLOCK_LEN)

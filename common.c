@@ -14,6 +14,7 @@
  */
 
 #include <errno.h>
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -143,18 +144,27 @@ int open_block(int storefd, const char *hash, char create)
     return fd;
 }
 
-int read_key(unsigned char *key, size_t keysize, const char *file)
+int read_keys(struct nonce_key *nout, struct encrypt_key *cout, const char *file)
 {
-    char hex[MASTER_KEY_LEN * 2 + 1];
+    unsigned char masterkey[MASTER_KEY_LEN];
+    char masterkey_hex[MASTER_KEY_LEN * 2];
     ssize_t bytes;
     int fd;
 
     if ((fd = open(file, O_RDONLY)) < 0)
         die_errno("Unable to open keyfile '%s'", file);
-    if ((bytes = read_bytes(fd, (unsigned char *) hex, sizeof(hex))) < 0)
+    if ((bytes = read_bytes(fd, (unsigned char *) masterkey_hex, sizeof(masterkey_hex))) < 0)
         die_errno("Unable to read keyfile '%s'", file);
-    if (hex2bin(key, keysize, hex, strlen(hex)) < 0)
+    if (bytes != MASTER_KEY_LEN * 2)
+        die("Invalid key length: expected %"PRIuMAX", got %"PRIuMAX, MASTER_KEY_LEN * 2, bytes);
+    if (hex2bin(masterkey, sizeof(masterkey), masterkey_hex, sizeof(masterkey_hex)) < 0)
         die("Unable to convert key to hex");
+
+    if (cout && crypto_kdf_derive_from_key(cout->data, sizeof(cout->data), 1, "sb-ncryp", masterkey) < 0)
+        die("Unable do derive encryption key");
+
+    if (nout && crypto_kdf_derive_from_key(nout->data, sizeof(nout->data), 2, "sb-nonce", masterkey) < 0)
+        die("Unable do derive nonce key");
 
     close(fd);
 

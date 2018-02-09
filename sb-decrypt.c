@@ -27,10 +27,9 @@
 
 int main(int argc, char *argv[])
 {
-    unsigned char masterkey[MASTER_KEY_LEN];
-    unsigned char encryptionkey[ENCRYPTION_KEY_LEN];
     unsigned char *cipher = malloc(CIPHER_BLOCK_LEN);
     unsigned char *plain = malloc(PLAIN_BLOCK_LEN);
+    struct encrypt_key enckey;
     ssize_t bytes;
 
     if (argc < 2)
@@ -39,17 +38,14 @@ int main(int argc, char *argv[])
     if (sodium_init() < 0)
         die("Unable to initialize libsodium");
 
-    if (read_key(masterkey, sizeof(masterkey), argv[1]) < 0)
+    if (read_keys(NULL, &enckey, argv[1]) < 0)
         die("Unable to read keyfile '%s'", argv[1]);
-
-    if (crypto_kdf_derive_from_key(encryptionkey, sizeof(encryptionkey), 1, "sb-ncryp", masterkey) < 0)
-        die("Unable do derive encryption key");
 
     while ((bytes = read_bytes(STDIN_FILENO, cipher, CIPHER_BLOCK_LEN)) == CIPHER_BLOCK_LEN) {
         uint32_t plainlen;
 
         if (crypto_aead_chacha20poly1305_decrypt(plain, NULL, NULL,
-                cipher + NONCE_LEN, CIPHER_DATA_LEN, NULL, 0, cipher, encryptionkey) < 0)
+                cipher + NONCE_LEN, CIPHER_DATA_LEN, NULL, 0, cipher, enckey.data) < 0)
             die("Unable to decrypt plaintext");
 
         plainlen = ntohl(*(uint32_t *) plain);
