@@ -1,6 +1,7 @@
 include config.mk
 
 PROGRAMS=gob-cat gob-chunk gob-decrypt gob-encrypt gob-keygen
+MANPAGES=$(patsubst %,%.1,${PROGRAMS})
 
 CAT_SOURCES=gob-cat.c common.c
 CAT_OBJECTS=${CAT_SOURCES:%.c=%.o}
@@ -59,3 +60,5 @@ clean:
 install:
 	install -d -m 755 ${BINDIR}
 	install -m 755 ${PROGRAMS} ${BINDIR}/
+	install -d -m 755 ${MANDIR}
+	install -m 644 ${MANPAGES} ${MANDIR}/

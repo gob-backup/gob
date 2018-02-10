@@ -1,0 +1,21 @@
+.TH GOB-CHUNK  "1"
+.SH NAME
+gob-chunk \- Split data into blocks and store them in a block storage
+.SH SYNOPSIS
+.B gob-chunk (\-\-version | <BLOCKSTORAGE>)
+.SH DESCRIPTION
+gob-chunk reads data from stdin and stores it as chunked blocks at the given block storage.
+Each block has a maximum length specified at compile time.
+The hash of block that is being read and stored will be output to stdout, followed by a trailer line encoding the total length and overall hash.
+This output is called index and is used to record the order of blocks read.
+.SH OPTIONS
+\-\-version
+.RS 4
+Show version and build information.
+.RE
+.PP
+<BLOCKSTORAGE>
+.RS 4
+Path to the block storage.
+All created blocks will be written at that path.
+.RE
