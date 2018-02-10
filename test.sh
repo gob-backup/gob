@@ -21,10 +21,6 @@ assert_files_equal() {
 	cmp "$1" "$2"
 }
 
-assert_equal() {
-	test "$1" = "$2"
-}
-
 assert_not_equal() {
 	test "$1" != "$2"
 }
@@ -90,7 +86,9 @@ test_expect_success 'key generates deterministic sequence' '
 '
 
 test_expect_success 'encryption and decryption roundtrips' '
-	assert_equal $(echo test | gob-encrypt key | gob-decrypt key) test
+	assert_success "echo test | gob-encrypt key | gob-decrypt key" >actual &&
+	echo test >expected &&
+	assert_files_equal actual expected
 '
 
 test_expect_success 'decryption with different key fails' '
