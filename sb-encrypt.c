@@ -14,6 +14,7 @@
  */
 
 #include <fcntl.h>
+#include <inttypes.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -24,15 +25,14 @@
 #include "config.h"
 #include "common.h"
 
-#define PLAIN_LEN (BLOCK_LEN - crypto_aead_chacha20poly1305_ABYTES)
-
 int main(int argc, char *argv[])
 {
-    unsigned char key[crypto_aead_chacha20poly1305_KEYBYTES];
-    unsigned char nonce[crypto_aead_chacha20poly1305_NPUBBYTES];
-    unsigned char *plain = malloc(PLAIN_LEN);
-    unsigned char *cipher = malloc(BLOCK_LEN);
-    ssize_t plainlen;
+    unsigned char *plain = malloc(PLAIN_BLOCK_LEN);
+    unsigned char *cipher = malloc(CIPHER_BLOCK_LEN);
+    struct encrypt_key enckey;
+    struct nonce_key noncekey;
+    uint32_t cnt = 0;
+    ssize_t bytes;
 
     if (argc < 2)
         die("USAGE: %s <KEYFILE>", argv[0]);
@@ -40,28 +40,41 @@ int main(int argc, char *argv[])
     if (sodium_init() < 0)
         die("Unable to initialize libsodium");
 
-    if (read_key(key, sizeof(key), argv[1]) < 0)
+    if (read_keys(&noncekey, &enckey, argv[1]) < 0)
         die("Unable to read keyfile '%s'", argv[1]);
 
-    memset(nonce, 0, sizeof(nonce));
-
-    while ((plainlen = read_bytes(STDIN_FILENO, plain + sizeof(uint32_t),
-                    PLAIN_LEN - sizeof(uint32_t))) > 0)
+    while ((bytes = read_bytes(STDIN_FILENO, plain + sizeof(uint32_t),
+                    PLAIN_DATA_LEN)) > 0)
     {
-        *(uint32_t *) plain = htonl(plainlen);
-        memset(plain + sizeof(uint32_t) + plainlen, 0, PLAIN_LEN - sizeof(uint32_t) - plainlen);
+        crypto_generichash_state state;
+        size_t cipherlen;
+        uint32_t ncnt = htonl(cnt);
 
-        if (crypto_aead_chacha20poly1305_encrypt(cipher, NULL,
-                plain, PLAIN_LEN, NULL, 0, NULL, nonce, key) < 0)
+        *(uint32_t *) plain = htonl(bytes);
+        memset(plain + bytes + PLAIN_META_LEN, 0, PLAIN_DATA_LEN - bytes);
+
+        if (crypto_generichash_init(&state, noncekey.data, sizeof(noncekey.data), NONCE_LEN) < 0 ||
+                crypto_generichash_update(&state, (unsigned char *) &ncnt, sizeof(ncnt)) < 0 ||
+                crypto_generichash_update(&state, plain, bytes) < 0 ||
+                crypto_generichash_final(&state, cipher, NONCE_LEN))
+            die("Unable to derive nonce");
+
+        if (crypto_aead_chacha20poly1305_encrypt(cipher + NONCE_LEN, (void *) &cipherlen,
+                plain, PLAIN_BLOCK_LEN, NULL, 0, NULL, cipher, enckey.data) < 0)
             die("Unable to encrypt plaintext");
 
-        if (write_bytes(STDOUT_FILENO, cipher, BLOCK_LEN) < 0)
+        if (cipherlen + NONCE_LEN != CIPHER_BLOCK_LEN)
+            die("Encryption resulted in invalid block length: expected %"PRIuMAX", got %"PRIuMAX,
+                    CIPHER_BLOCK_LEN - NONCE_LEN, cipherlen);
+
+        if (write_bytes(STDOUT_FILENO, cipher, CIPHER_BLOCK_LEN) < 0)
             die_errno("Unable to write ciphertext to stdout");
 
-        increment(nonce, sizeof(nonce));
+        if ((++cnt) == 0)
+            die("Overflow in counter");
     }
 
-    if (plainlen < 0)
+    if (bytes < 0)
         die_errno("Unable to read from stdin");
 
     free(plain);

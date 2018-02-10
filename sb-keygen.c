@@ -23,7 +23,7 @@
 
 int main(int argc, char *argv[])
 {
-    unsigned char key[crypto_aead_chacha20poly1305_KEYBYTES];
+    unsigned char key[crypto_kdf_KEYBYTES];
     char hex[sizeof(key) * 2 + 1];
     int fd;
 
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     if (sodium_init() < 0)
         die("Unable to initialize libsodium");
 
-    randombytes_buf(key, sizeof(key));
+    crypto_kdf_keygen(key);
 
     if (bin2hex(hex, sizeof(hex), key, sizeof(key)) < 0)
         die("Unable to convert key to hex");
