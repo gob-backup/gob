@@ -135,6 +135,12 @@ test_expect_success 'chunk and cat roundtrip' '
 	assert_files_equal actual expected
 '
 
+test_expect_success 'cat with multiple blocks succeeds' '
+	assert_success "dd if=/dev/zero bs=5M count=1 >expected" &&
+	assert_success "cat expected | gob-chunk blocks | gob-cat blocks >actual" &&
+	assert_files_equal actual expected
+'
+
 test_expect_success 'cat with non-existing blocks fails' '
 	cat >index <<-EOF &&
 		00000000000000000000000000000000
