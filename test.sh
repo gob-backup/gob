@@ -77,20 +77,20 @@ test_expect_success 'generate a deterministic key' '
 '
 
 test_expect_success 'encryption generates fixed blocksize' '
-	echo test | gob-encrypt key | wc -c >actual &&
+	assert_success "echo test | gob-encrypt key | wc -c >actual" &&
 	echo $((4096 * 1024)) >expected &&
 	assert_files_equal actual expected
 '
 
 test_expect_success 'encryption generates multiples of blocksize' '
-	dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key | wc -c >actual &&
+	assert_success "dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key | wc -c >actual" &&
 	echo $((4096 * 1024 * 2)) >expected &&
 	assert_files_equal actual expected
 '
 
 test_expect_success 'key generates deterministic sequence' '
-	dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key >expected &&
-	dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key >actual &&
+	assert_success "dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key >expected" &&
+	assert_success "dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key >actual" &&
 	assert_files_equal actual expected
 '
 
