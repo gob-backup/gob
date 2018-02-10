@@ -21,10 +21,6 @@ assert_equal() {
 	cmp "$1" "$2"
 }
 
-assert_not_equal() {
-	test "$1" != "$2"
-}
-
 assert_success() {
 	eval "$@"
 }
@@ -93,7 +89,7 @@ test_expect_success 'encryption and decryption roundtrips' '
 
 test_expect_success 'decryption with different key fails' '
 	assert_success gob-keygen other &&
-	assert_not_equal $(echo test | gob-encrypt key | gob-decrypt other) test
+	assert_failure "echo test | gob-encrypt key | gob-decrypt other"
 '
 
 test_expect_success 'chunking without block directory fails' '
