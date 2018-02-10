@@ -6,8 +6,9 @@ sudo: false
 addons:
   apt:
     sources:
-     - sourceline: 'ppa:chris-lea/libsodium'
+     - sourceline: 'deb https://dl.bintray.com/sb-backup/travis-deps trusty main'
     packages:
+     - libsodium23
      - libsodium-dev
 
 os:
