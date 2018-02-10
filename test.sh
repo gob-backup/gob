@@ -39,7 +39,7 @@ assert_success() {
 
 assert_failure() {
 	eval "$@"
-	test $? -ne 0
+	test $? -eq 1
 	return $?
 }
 
