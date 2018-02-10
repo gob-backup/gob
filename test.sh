@@ -39,7 +39,7 @@ assert_success() {
 
 assert_failure() {
 	eval "$@"
-	test $? -ne 0
+	test $? -eq 1
 	return $?
 }
 
@@ -77,20 +77,20 @@ test_expect_success 'generate a deterministic key' '
 '
 
 test_expect_success 'encryption generates fixed blocksize' '
-	echo test | gob-encrypt key | wc -c >actual &&
+	assert_success "echo test | gob-encrypt key | wc -c >actual" &&
 	echo $((4096 * 1024)) >expected &&
 	assert_files_equal actual expected
 '
 
 test_expect_success 'encryption generates multiples of blocksize' '
-	dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key | wc -c >actual &&
+	assert_success "dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key | wc -c >actual" &&
 	echo $((4096 * 1024 * 2)) >expected &&
 	assert_files_equal actual expected
 '
 
 test_expect_success 'key generates deterministic sequence' '
-	dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key >expected &&
-	dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key >actual &&
+	assert_success "dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key >expected" &&
+	assert_success "dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key >actual" &&
 	assert_files_equal actual expected
 '
 
@@ -127,6 +127,51 @@ test_expect_success 'multiple equal chunks generate same hash' '
 		>223d6f95048605b982a4d09ec2083405 8388608
 	EOF
 	assert_files_equal actual expected
+'
+
+test_expect_success 'chunk and cat roundtrip' '
+	assert_success "echo foobar | gob-chunk blocks | gob-cat blocks >actual" &&
+	echo foobar >expected &&
+	assert_files_equal actual expected
+'
+
+test_expect_success 'cat with multiple blocks succeeds' '
+	assert_success "dd if=/dev/zero bs=5M count=1 >expected" &&
+	assert_success "cat expected | gob-chunk blocks | gob-cat blocks >actual" &&
+	assert_files_equal actual expected
+'
+
+test_expect_success 'cat with only trailer fails' '
+	assert_success "echo foobar | gob-chunk blocks | head -n1 >index" &&
+	assert_failure "cat index | gob-cat blocks"
+'
+
+test_expect_success 'cat with too short trailer length fails' '
+	assert_success "echo foobar | gob-chunk blocks | sed s/7$/4/ >index" &&
+	assert_failure "cat index | gob-cat blocks"
+'
+
+test_expect_success 'cat with too long trailer length fails' '
+	assert_success "echo foobar | gob-chunk blocks | sed s/7$/20/ >index" &&
+	assert_failure "cat index | gob-cat blocks"
+'
+
+test_expect_success 'cat with invalid trailer hash fails' '
+	assert_success "echo foobar | gob-chunk blocks | sed \"s/>..../>0000/\" >index" &&
+	assert_failure "cat index | gob-cat blocks"
+'
+
+test_expect_success 'cat with missing trailer fails' '
+	assert_success "echo foobar | gob-chunk blocks | head -n-1 >index" &&
+	assert_failure "cat index | gob-cat blocks"
+'
+
+test_expect_success 'cat with non-existing blocks fails' '
+	cat >index <<-EOF &&
+		00000000000000000000000000000000
+		>00000000000000000000000000000000 7
+	EOF
+	assert_failure "cat index | gob-cat blocks"
 '
 
 rm -rf "$TEST_DIR"

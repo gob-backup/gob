@@ -30,28 +30,23 @@
 
 static int parse_trailer(unsigned char *hash_out, size_t *datalen_out, const char *trailer)
 {
-    char hash[HASH_LEN * 2];
-    int i;
-
     if (*trailer != '>')
         die("Last line is not a trailer line");
     trailer++;
 
-    for (i = 0; i < (HASH_LEN * 2); i++) {
-        char h = *trailer++;
-        if (!strchr("0123456789abcdef", h))
-            die("Invalid trailer hash");
-        hash[i] = h;
-    }
+    if (strlen(trailer) < HASH_LEN * 2)
+        die("Trailer is too short");
+
+    if (hex2bin(hash_out, HASH_LEN, trailer, HASH_LEN * 2) < 0)
+        die("Unable to decode trailer hash");
+    trailer += HASH_LEN * 2;
 
     if (*trailer != ' ')
         die("No separator between trailer hash and length");
+    trailer++;
 
     if ((*datalen_out = strtol(trailer, NULL, 10)) == 0)
         die("Invalid data length in trailer");
-
-    if (hex2bin(hash_out, HASH_LEN, hash, sizeof(hash)) < 0)
-        die("Unable to decode trailer hash");
 
     return 0;
 }
