@@ -129,6 +129,20 @@ test_expect_success 'multiple equal chunks generate same hash' '
 	assert_files_equal actual expected
 '
 
+test_expect_success 'chunk and cat roundtrip' '
+	assert_success "echo foobar | gob-chunk blocks | gob-cat blocks >actual" &&
+	echo foobar >expected &&
+	assert_files_equal actual expected
+'
+
+test_expect_success 'cat with non-existing blocks fails' '
+	cat >index <<-EOF &&
+		00000000000000000000000000000000
+		>00000000000000000000000000000000 7
+	EOF
+	assert_failure "cat index | gob-cat blocks"
+'
+
 rm -rf "$TEST_DIR"
 
 # vim: noexpandtab
