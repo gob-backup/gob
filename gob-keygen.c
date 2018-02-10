@@ -27,8 +27,11 @@ int main(int argc, char *argv[])
     char hex[sizeof(key) * 2 + 1];
     int fd;
 
-    if (argc < 2)
-        die("USAGE: %s <KEYFILE>");
+    if (argc != 2)
+        die("USAGE: %s ( --version | <KEYFILE> )");
+
+    if (!strcmp(argv[1], "--version"))
+        version("gob-keygen");
 
     if (sodium_init() < 0)
         die("Unable to initialize libsodium");

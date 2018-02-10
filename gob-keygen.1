@@ -1,0 +1,19 @@
+.TH GOB-KEYGEN  "1"
+.SH NAME
+gob-keygen \- generate key file
+.SH SYNOPSIS
+.B gob-keygen (\-\-version | <KEYFILE>)
+.SH DESCRIPTION
+gob-keygen generates the keyfile used for encryption or decryption of blocks.
+Given a path to a <KEYFILE>, it will create that file and write a newly generated key into it.
+If that path already exists, gob-keygen will not overwrite it but instead produce an error.
+.SH OPTIONS
+\-\-version
+.RS 4
+Show version and build information.
+.RE
+.PP
+<KEYFILE>
+.RS 4
+Path to the file that is to be created with the newly generated key.
+.RE

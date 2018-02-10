@@ -53,6 +53,15 @@ void die_errno(const char *fmt, ...)
     exit(1);
 }
 
+void version(const char *executable)
+{
+    printf("%s version "GOB_VERSION"\n"
+           "\n"
+           "block size: %d\n"
+           "hash size:  %d\n", executable, BLOCK_LEN, HASH_LEN);
+    exit(0);
+}
+
 ssize_t read_bytes(int fd, unsigned char *buf, size_t buflen)
 {
     size_t total = 0;

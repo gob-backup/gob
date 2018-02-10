@@ -34,8 +34,11 @@ int main(int argc, char *argv[])
     uint32_t cnt = 0;
     ssize_t bytes;
 
-    if (argc < 2)
-        die("USAGE: %s <KEYFILE>", argv[0]);
+    if (argc != 2)
+        die("USAGE: %s ( --version | <KEYFILE> )", argv[0]);
+
+    if (!strcmp(argv[1], "--version"))
+        version("gob-encrypt");
 
     if (sodium_init() < 0)
         die("Unable to initialize libsodium");

@@ -63,7 +63,10 @@ int main(int argc, char *argv[])
     int storefd;
 
     if (argc != 2)
-        die("USAGE: %s <DIR>", argv[0]);
+        die("USAGE: %s ( --version | <DIR> )", argv[0]);
+
+    if (!strcmp(argv[1], "--version"))
+        version("gob-chunk");
 
     if ((storefd = open(argv[1], O_RDONLY)) < 0)
         die_errno("Unable to open storage '%s'", argv[1]);
