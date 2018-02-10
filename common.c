@@ -160,10 +160,10 @@ int read_keys(struct nonce_key *nout, struct encrypt_key *cout, const char *file
     if (hex2bin(masterkey, sizeof(masterkey), masterkey_hex, sizeof(masterkey_hex)) < 0)
         die("Unable to convert key to hex");
 
-    if (cout && crypto_kdf_derive_from_key(cout->data, sizeof(cout->data), 1, "sb-ncryp", masterkey) < 0)
+    if (cout && crypto_kdf_derive_from_key(cout->data, sizeof(cout->data), 1, "gobcrypt", masterkey) < 0)
         die("Unable do derive encryption key");
 
-    if (nout && crypto_kdf_derive_from_key(nout->data, sizeof(nout->data), 2, "sb-nonce", masterkey) < 0)
+    if (nout && crypto_kdf_derive_from_key(nout->data, sizeof(nout->data), 2, "gobnonce", masterkey) < 0)
         die("Unable do derive nonce key");
 
     close(fd);
