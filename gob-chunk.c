@@ -57,7 +57,6 @@ int main(int argc, char *argv[])
     unsigned char *block = malloc(BLOCK_LEN);
     unsigned char hash[HASH_LEN];
     char hex[HASH_LEN * 2 + 1];
-    struct stat st;
     size_t total = 0;
     ssize_t bytes;
     int storefd;
@@ -68,11 +67,8 @@ int main(int argc, char *argv[])
     if (!strcmp(argv[1], "--version"))
         version("gob-chunk");
 
-    if ((storefd = open(argv[1], O_RDONLY)) < 0)
-        die_errno("Unable to open storage '%s'", argv[1]);
-
-    if (fstat(storefd, &st) < 0 || !S_ISDIR(st.st_mode))
-        die("Storage is not a directory");
+    if ((storefd = open_store(argv[1])) < 0)
+        die("Unable to open store");
 
     if (crypto_generichash_init(state, NULL, 0, HASH_LEN) < 0)
         die("Unable to initialize hashing state");

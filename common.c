@@ -116,6 +116,20 @@ int hex2bin(unsigned char *out, size_t outlen, const char *in, size_t inlen)
     return 0;
 }
 
+int open_store(const char *path)
+{
+    struct stat st;
+    int storefd;
+
+    if ((storefd = open(path, O_RDONLY)) < 0)
+        die_errno("Unable to open storage '%s'", path);
+
+    if (fstat(storefd, &st) < 0 || !S_ISDIR(st.st_mode))
+        die("Storage is not a directory");
+
+    return storefd;
+}
+
 int open_block(int storefd, const char *hash, char create)
 {
     struct stat st;
