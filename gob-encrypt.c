@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
         die("Unable to read keyfile '%s'", argv[1]);
 
     while ((bytes = read_bytes(STDIN_FILENO, plain + sizeof(uint32_t),
-                    PLAIN_DATA_LEN)) > 0)
+                PLAIN_DATA_LEN)) > 0)
     {
         crypto_generichash_state state;
         size_t cipherlen;

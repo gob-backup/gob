@@ -1,5 +1,5 @@
-sb-cat
-sb-chunk
-sb-decrypt
-sb-encrypt
-sb-keygen
+gob-cat
+gob-chunk
+gob-decrypt
+gob-encrypt
+gob-keygen
