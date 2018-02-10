@@ -19,28 +19,23 @@ TEST_DIR=$(mktemp -d /tmp/gob-tests-XXXXXXXX)
 
 assert_files_equal() {
 	cmp "$1" "$2"
-	return $?
 }
 
 assert_equal() {
 	test "$1" = "$2"
-	return $?
 }
 
 assert_not_equal() {
 	test "$1" != "$2"
-	return $?
 }
 
 assert_success() {
 	eval "$@"
-	return $?
 }
 
 assert_failure() {
 	eval "$@"
 	test $? -eq 1
-	return $?
 }
 
 test_expect_success() {
