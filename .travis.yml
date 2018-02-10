@@ -6,7 +6,7 @@ sudo: false
 addons:
   apt:
     sources:
-     - sourceline: 'deb https://dl.bintray.com/sb-backup/travis-deps trusty main'
+     - sourceline: 'deb https://dl.bintray.com/gob-backup/travis-deps trusty main'
     packages:
      - libsodium23
      - libsodium-dev
