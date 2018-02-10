@@ -141,6 +141,31 @@ test_expect_success 'cat with multiple blocks succeeds' '
 	assert_files_equal actual expected
 '
 
+test_expect_success 'cat with only trailer fails' '
+	assert_success "echo foobar | gob-chunk blocks | head -n1 >index" &&
+	assert_failure "cat index | gob-cat blocks"
+'
+
+test_expect_success 'cat with too short trailer length fails' '
+	assert_success "echo foobar | gob-chunk blocks | sed s/7$/4/ >index" &&
+	assert_failure "cat index | gob-cat blocks"
+'
+
+test_expect_success 'cat with too long trailer length fails' '
+	assert_success "echo foobar | gob-chunk blocks | sed s/7$/20/ >index" &&
+	assert_failure "cat index | gob-cat blocks"
+'
+
+test_expect_success 'cat with invalid trailer hash fails' '
+	assert_success "echo foobar | gob-chunk blocks | sed \"s/>..../>0000/\" >index" &&
+	assert_failure "cat index | gob-cat blocks"
+'
+
+test_expect_success 'cat with missing trailer fails' '
+	assert_success "echo foobar | gob-chunk blocks | head -n-1 >index" &&
+	assert_failure "cat index | gob-cat blocks"
+'
+
 test_expect_success 'cat with non-existing blocks fails' '
 	cat >index <<-EOF &&
 		00000000000000000000000000000000
