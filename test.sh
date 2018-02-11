@@ -92,6 +92,12 @@ test_expect_success 'decryption with different key fails' '
 	assert_failure "echo test | gob-encrypt key | gob-decrypt other"
 '
 
+test_expect_success 'chunking with invalid block store version fails' '
+	assert_success mkdir block-invalid-version &&
+	assert_success "echo 0 >block-invalid-version/version" &&
+	assert_failure "echo foobar | gob-chunk block-invalid-version"
+'
+
 test_expect_success 'chunking without block directory fails' '
 	assert_failure gob-chunk
 '
