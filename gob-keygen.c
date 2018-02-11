@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     int fd;
 
     if (argc != 2)
-        die("USAGE: %s ( --version | <KEYFILE> )");
+        die("USAGE: %s ( --version | <KEYFILE> )", argv[0]);
 
     if (!strcmp(argv[1], "--version"))
         version("gob-keygen");

@@ -56,7 +56,6 @@ int main(int argc, char *argv[])
     crypto_generichash_state *state = malloc(crypto_generichash_statebytes());
     unsigned char expected_trailer[HASH_LEN], computed_hash[HASH_LEN];
     unsigned char *block = malloc(BLOCK_LEN);
-    struct stat st;
     char *line = NULL;
     ssize_t linelen;
     size_t total = 0, n = 0, expected_len;
@@ -68,11 +67,8 @@ int main(int argc, char *argv[])
     if (!strcmp(argv[1], "--version"))
         version("gob-cat");
 
-    if ((storefd = open(argv[1], O_RDONLY)) < 0)
-        die_errno("Unable to open storage '%s'", argv[1]);
-
-    if (fstat(storefd, &st) < 0 || !S_ISDIR(st.st_mode))
-        die("Storage is not a directory");
+    if ((storefd = open_store(argv[1])) < 0)
+        die("Unable to open store");
 
     if (crypto_generichash_init(state, NULL, 0, HASH_LEN) < 0)
         die("Unable to initialize hashing state");

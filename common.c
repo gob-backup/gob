@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#include <arpa/inet.h>
 #include <sys/stat.h>
 
 #include <sodium.h>
@@ -114,6 +115,42 @@ int hex2bin(unsigned char *out, size_t outlen, const char *in, size_t inlen)
         return -1;
 
     return 0;
+}
+
+int open_store(const char *path)
+{
+    struct stat st;
+    int storefd, versionfd;
+    uint32_t version;
+
+    if ((storefd = open(path, O_RDONLY)) < 0)
+        die_errno("Unable to open storage '%s'", path);
+
+    if (fstat(storefd, &st) < 0 || !S_ISDIR(st.st_mode))
+        die("Storage is not a directory");
+
+    if ((versionfd = openat(storefd, BLOCK_STORE_VERSION_FILE, O_RDONLY)) < 0) {
+        version = htonl(BLOCK_STORE_VERSION);
+
+        if ((versionfd = openat(storefd, BLOCK_STORE_VERSION_FILE,
+                O_CREAT|O_EXCL|O_WRONLY, 0644)) < 0)
+            die_errno("Unable to create store version file");
+
+        if (write_bytes(versionfd, (unsigned char *) &version, sizeof(version)) < 0)
+            die_errno("Unable to write store version");
+    } else {
+        if (read_bytes(versionfd, (unsigned char *) &version, sizeof(version))
+                != sizeof(version))
+            die_errno("Unable to read store version");
+
+        version = ntohl(version);
+        if (version != BLOCK_STORE_VERSION)
+            die_errno("Unable to open block store with version %"PRIu32, version);
+    }
+
+    close(versionfd);
+
+    return storefd;
 }
 
 int open_block(int storefd, const char *hash, char create)

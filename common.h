@@ -18,6 +18,9 @@
 
 #include "config.h"
 
+#define BLOCK_STORE_VERSION 1
+#define BLOCK_STORE_VERSION_FILE "version"
+
 #define MASTER_KEY_LEN     (crypto_kdf_KEYBYTES)
 #define ENCRYPTION_KEY_LEN (crypto_aead_chacha20poly1305_KEYBYTES)
 #define NONCE_KEY_LEN      (crypto_generichash_KEYBYTES)
@@ -49,6 +52,7 @@ int write_bytes(int fd, const unsigned char *buf, size_t buflen);
 int bin2hex(char *out, size_t outlen, const unsigned char *in, size_t inlen);
 int hex2bin(unsigned char *out, size_t outlen, const char *in, size_t inlen);
 
+int open_store(const char *path);
 int open_block(int storefd, const char *hash, char create);
 
 int read_keys(struct nonce_key *nout, struct encrypt_key *cout, const char *file);
