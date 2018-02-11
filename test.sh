@@ -17,30 +17,17 @@ PATH="$(pwd):${PATH}"
 TEST_NUM=0
 TEST_DIR=$(mktemp -d /tmp/gob-tests-XXXXXXXX)
 
-assert_files_equal() {
-	cmp "$1" "$2"
-	return $?
-}
-
 assert_equal() {
-	test "$1" = "$2"
-	return $?
-}
-
-assert_not_equal() {
-	test "$1" != "$2"
-	return $?
+	cmp "$1" "$2"
 }
 
 assert_success() {
 	eval "$@"
-	return $?
 }
 
 assert_failure() {
 	eval "$@"
 	test $? -eq 1
-	return $?
 }
 
 test_expect_success() {
@@ -79,28 +66,30 @@ test_expect_success 'generate a deterministic key' '
 test_expect_success 'encryption generates fixed blocksize' '
 	assert_success "echo test | gob-encrypt key | wc -c >actual" &&
 	echo $((4096 * 1024)) >expected &&
-	assert_files_equal actual expected
+	assert_equal actual expected
 '
 
 test_expect_success 'encryption generates multiples of blocksize' '
 	assert_success "dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key | wc -c >actual" &&
 	echo $((4096 * 1024 * 2)) >expected &&
-	assert_files_equal actual expected
+	assert_equal actual expected
 '
 
 test_expect_success 'key generates deterministic sequence' '
 	assert_success "dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key >expected" &&
 	assert_success "dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key >actual" &&
-	assert_files_equal actual expected
+	assert_equal actual expected
 '
 
 test_expect_success 'encryption and decryption roundtrips' '
-	assert_equal $(echo test | gob-encrypt key | gob-decrypt key) test
+	assert_success "echo test | gob-encrypt key | gob-decrypt key" >actual &&
+	echo test >expected &&
+	assert_equal actual expected
 '
 
 test_expect_success 'decryption with different key fails' '
 	assert_success gob-keygen other &&
-	assert_not_equal $(echo test | gob-encrypt key | gob-decrypt other) test
+	assert_failure "echo test | gob-encrypt key | gob-decrypt other"
 '
 
 test_expect_success 'chunking without block directory fails' '
@@ -115,7 +104,7 @@ test_expect_success 'chunking with block directory succeeds' '
 		21ebd7636fdde0f4929e0ed3c0beaf55
 		>21ebd7636fdde0f4929e0ed3c0beaf55 5
 	EOF
-	assert_files_equal actual expected
+	assert_equal actual expected
 '
 
 test_expect_success 'multiple equal chunks generate same hash' '
@@ -126,19 +115,19 @@ test_expect_success 'multiple equal chunks generate same hash' '
 		a145668a0b23bf1551f17838cf35e30e
 		>223d6f95048605b982a4d09ec2083405 8388608
 	EOF
-	assert_files_equal actual expected
+	assert_equal actual expected
 '
 
 test_expect_success 'chunk and cat roundtrip' '
 	assert_success "echo foobar | gob-chunk blocks | gob-cat blocks >actual" &&
 	echo foobar >expected &&
-	assert_files_equal actual expected
+	assert_equal actual expected
 '
 
 test_expect_success 'cat with multiple blocks succeeds' '
 	assert_success "dd if=/dev/zero bs=5M count=1 >expected" &&
 	assert_success "cat expected | gob-chunk blocks | gob-cat blocks >actual" &&
-	assert_files_equal actual expected
+	assert_equal actual expected
 '
 
 test_expect_success 'cat with only trailer fails' '
