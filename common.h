@@ -18,6 +18,9 @@
 
 #include "config.h"
 
+#define BLOCK_STORE_VERSION 1
+#define BLOCK_STORE_VERSION_FILE "version"
+
 #define MASTER_KEY_LEN     (crypto_kdf_KEYBYTES)
 #define ENCRYPTION_KEY_LEN (crypto_aead_chacha20poly1305_KEYBYTES)
 #define NONCE_KEY_LEN      (crypto_generichash_KEYBYTES)
