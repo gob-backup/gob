@@ -169,6 +169,33 @@ test_expect_success 'cat with non-existing blocks fails' '
 	assert_failure "cat index | gob-cat blocks"
 '
 
+test_expect_success 'fsck with valid block store succeeds' '
+	assert_success mkdir fsck &&
+	assert_success echo test | gob-chunk fsck &&
+	assert_success gob-fsck fsck
+'
+
+test_expect_success 'fsck with invalid store file fails' '
+	assert_success gob-fsck fsck &&
+	assert_success touch fsck/bogus &&
+	assert_failure gob-fsck fsck &&
+	assert_success rm fsck/bogus
+'
+
+test_expect_success 'fsck with invalid store file fails' '
+	assert_success gob-fsck fsck &&
+	assert_success mkdir fsck/ab &&
+	assert_success touch fsck/ab/invalid &&
+	assert_failure gob-fsck fsck &&
+	assert_success rm fsck/ab/invalid
+'
+
+test_expect_success 'fsck with corrupted store file fails' '
+	assert_success gob-fsck fsck &&
+	assert_success echo "foobar" > fsck/21/ebd7636fdde0f4929e0ed3c0beaf55 &&
+	assert_failure gob-fsck fsck
+'
+
 rm -rf "$TEST_DIR"
 
 # vim: noexpandtab

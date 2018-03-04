@@ -54,6 +54,18 @@ void die_errno(const char *fmt, ...)
     exit(1);
 }
 
+void warn(const char *fmt, ...)
+{
+    va_list ap;
+
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);
+    va_end(ap);
+    putc('\n', stderr);
+
+    exit(1);
+}
+
 void version(const char *executable)
 {
     printf("%s version "GOB_VERSION"\n"

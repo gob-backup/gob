@@ -44,6 +44,7 @@ struct encrypt_key {
 
 void die(const char *fmt, ...);
 void die_errno(const char *fmt, ...);
+void warn(const char *fmt, ...);
 void version(const char *executable);
 
 ssize_t read_bytes(int fd, unsigned char *buf, size_t buflen);

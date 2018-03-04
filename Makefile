@@ -1,6 +1,6 @@
 include config.mk
 
-PROGRAMS=gob-cat gob-chunk gob-decrypt gob-encrypt gob-keygen
+PROGRAMS=gob-cat gob-chunk gob-decrypt gob-encrypt gob-fsck gob-keygen
 MANPAGES=$(patsubst %,%.1,${PROGRAMS})
 
 CAT_SOURCES=gob-cat.c common.c
@@ -14,6 +14,9 @@ DECRYPT_OBJECTS=${DECRYPT_SOURCES:%.c=%.o}
 
 ENCRYPT_SOURCES=gob-encrypt.c common.c
 ENCRYPT_OBJECTS=${ENCRYPT_SOURCES:%.c=%.o}
+
+FSCK_SOURCES=gob-fsck.c common.c
+FSCK_OBJECTS=${FSCK_SOURCES:%.c=%.o}
 
 KEYGEN_SOURCES=gob-keygen.c common.c
 KEYGEN_OBJECTS=${KEYGEN_SOURCES:%.c=%.o}
@@ -33,6 +36,10 @@ gob-decrypt: ${DECRYPT_OBJECTS}
 	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
 
 gob-encrypt: ${ENCRYPT_OBJECTS}
+	@echo "LD $@"
+	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
+
+gob-fsck: ${FSCK_OBJECTS}
 	@echo "LD $@"
 	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
 
