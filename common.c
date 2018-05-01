@@ -105,28 +105,70 @@ int write_bytes(int fd, const unsigned char *buf, size_t buflen)
     return 0;
 }
 
-int bin2hex(char *out, size_t outlen, const unsigned char *in, size_t inlen)
+int hash_from_bin(struct hash *out, const unsigned char *data, size_t len)
 {
-    if (outlen < HASH_LEN * 2 + 1)
+    if (len != HASH_LEN)
         return -1;
-    sodium_bin2hex(out, outlen, in, inlen);
+    memcpy(&out->bin[0], data, len);
+    sodium_bin2hex(&out->hex[0], sizeof(out->hex), data, len);
     return 0;
 }
 
-int hex2bin(unsigned char *out, size_t outlen, const char *in, size_t inlen)
+int hash_from_str(struct hash *out, const char *str, size_t len)
 {
     size_t parsed_len;
 
-    if (outlen < (inlen / 2))
+    if (!len)
+        len = strlen(str);
+
+    if (len != HASH_LEN * 2 || strspn(str, "0123456789abcdef") != len)
+        return -1;
+    if (sodium_hex2bin(&out->bin[0], sizeof(out->bin), str, len, NULL, &parsed_len, NULL) < 0)
+        return -1;
+    if (parsed_len != sizeof(out->bin))
         return -1;
 
-    if (sodium_hex2bin(out, outlen, in, inlen, NULL, &parsed_len, NULL) < 0)
-        return -1;
-
-    if (parsed_len != outlen)
-        return -1;
+    strncpy(&out->hex[0], str, len);
 
     return 0;
+}
+
+int hash_eq(const struct hash *a, const struct hash *b)
+{
+    return !memcmp(a->bin, b->bin, sizeof(a->bin));
+}
+
+int hash_compute(struct hash *out, const unsigned char *data, size_t len)
+{
+    struct hash_state state;
+
+    if (hash_state_init(&state) < 0 ||
+            hash_state_update(&state, data, len) < 0 ||
+            hash_state_final(out, &state) < 0)
+        return -1;
+    return 0;
+}
+
+int hash_state_init(struct hash_state *state)
+{
+    if (crypto_generichash_init(&state->state, NULL, 0, HASH_LEN) < 0)
+        return -1;
+    return 0;
+}
+
+int hash_state_update(struct hash_state *state, const unsigned char *data, size_t len)
+{
+    if (crypto_generichash_update(&state->state, data, len) < 0)
+        return -1;
+    return 0;
+}
+
+int hash_state_final(struct hash *out, struct hash_state *state)
+{
+    unsigned char hash[HASH_LEN];
+    if (crypto_generichash_final(&state->state, hash, sizeof(hash)) < 0)
+        return -1;
+    return hash_from_bin(out, hash, sizeof(hash));
 }
 
 int open_store(const char *path)
@@ -206,6 +248,7 @@ int read_keys(struct nonce_key *nout, struct encrypt_key *cout, const char *file
 {
     unsigned char masterkey[MASTER_KEY_LEN];
     char masterkey_hex[MASTER_KEY_LEN * 2];
+    size_t parsed_len;
     ssize_t bytes;
     int fd;
 
@@ -215,8 +258,10 @@ int read_keys(struct nonce_key *nout, struct encrypt_key *cout, const char *file
         die_errno("Unable to read keyfile '%s'", file);
     if (bytes != MASTER_KEY_LEN * 2)
         die("Invalid key length: expected %"PRIuMAX", got %"PRIuMAX, MASTER_KEY_LEN * 2, bytes);
-    if (hex2bin(masterkey, sizeof(masterkey), masterkey_hex, sizeof(masterkey_hex)) < 0)
+    if (sodium_hex2bin(masterkey, sizeof(masterkey), masterkey_hex, sizeof(masterkey_hex), NULL, &parsed_len, NULL) < 0)
         die("Unable to convert key to hex");
+    if (parsed_len != MASTER_KEY_LEN)
+        die("Key not fully parsed");
 
     if (cout && crypto_kdf_derive_from_key(cout->data, sizeof(cout->data), 1, "gobcrypt", masterkey) < 0)
         die("Unable do derive encryption key");

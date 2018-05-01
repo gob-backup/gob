@@ -24,39 +24,33 @@
 
 #include <arpa/inet.h>
 
-#include <sodium.h>
-
 #include "config.h"
 #include "common.h"
 
 static int store_block(int storefd, unsigned char *block, size_t blocklen)
 {
-    unsigned char hash[HASH_LEN];
-    char hex[HASH_LEN * 2 + 1];
+    struct hash hash;
     int fd;
 
-    if (crypto_generichash(hash, sizeof(hash), block, blocklen, NULL, 0) < 0)
+    if (hash_compute(&hash, block, blocklen) < 0)
         die("Unable to hash block");
-    if (bin2hex(hex, sizeof(hex), hash, sizeof(hash)) < 0)
-        die("Unable to convert binary to hex");
 
-    if ((fd = open_block(storefd, hex, 1)) >= 0) {
+    if ((fd = open_block(storefd, hash.hex, 1)) >= 0) {
         if (write_bytes(fd, block, blocklen) < 0)
-            die_errno("Unable to write block '%s'", hex);
+            die_errno("Unable to write block '%s'", hash.hex);
         close(fd);
     }
 
-    puts(hex);
+    puts(hash.hex);
 
     return 0;
 }
 
 int main(int argc, char *argv[])
 {
-    crypto_generichash_state *state = malloc(crypto_generichash_statebytes());
     unsigned char *block = malloc(BLOCK_LEN);
-    unsigned char hash[HASH_LEN];
-    char hex[HASH_LEN * 2 + 1];
+    struct hash_state state;
+    struct hash hash;
     size_t total = 0;
     ssize_t bytes;
     int storefd;
@@ -70,13 +64,13 @@ int main(int argc, char *argv[])
     if ((storefd = open_store(argv[1])) < 0)
         die("Unable to open store");
 
-    if (crypto_generichash_init(state, NULL, 0, HASH_LEN) < 0)
+    if (hash_state_init(&state) < 0)
         die("Unable to initialize hashing state");
 
     while ((bytes = read_bytes(STDIN_FILENO, block, BLOCK_LEN)) > 0) {
         total += bytes;
 
-        if (crypto_generichash_update(state, block, bytes) < 0)
+        if (hash_state_update(&state, block, bytes) < 0)
             die("Unable to update hash");
         if (store_block(storefd, block, bytes) < 0)
             die("Unable to store block");
@@ -85,15 +79,11 @@ int main(int argc, char *argv[])
     if (bytes < 0)
         die_errno("Unable to read block");
 
-    if (crypto_generichash_final(state, hash, sizeof(hash)) < 0)
+    if (hash_state_final(&hash, &state) < 0)
         die("Unable to finalize hash");
 
-    if (bin2hex(hex, sizeof(hex), hash, sizeof(hash)) < 0)
-        die("Unable to convert binary to hex");
+    printf(">%s %"PRIuMAX"\n", hash.hex, total);
 
-    printf(">%s %"PRIuMAX"\n", hex, total);
-
-    free(state);
     free(block);
     close(storefd);
 

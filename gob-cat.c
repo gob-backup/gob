@@ -28,7 +28,7 @@
 #include "config.h"
 #include "common.h"
 
-static int parse_trailer(unsigned char *hash_out, size_t *datalen_out, const char *trailer)
+static int parse_trailer(struct hash *hash_out, size_t *datalen_out, const char *trailer)
 {
     if (*trailer != '>')
         die("Last line is not a trailer line");
@@ -37,7 +37,7 @@ static int parse_trailer(unsigned char *hash_out, size_t *datalen_out, const cha
     if (strlen(trailer) < HASH_LEN * 2)
         die("Trailer is too short");
 
-    if (hex2bin(hash_out, HASH_LEN, trailer, HASH_LEN * 2) < 0)
+    if (hash_from_str(hash_out, trailer, HASH_LEN * 2) < 0)
         die("Unable to decode trailer hash");
     trailer += HASH_LEN * 2;
 
@@ -53,8 +53,8 @@ static int parse_trailer(unsigned char *hash_out, size_t *datalen_out, const cha
 
 int main(int argc, char *argv[])
 {
-    crypto_generichash_state *state = malloc(crypto_generichash_statebytes());
-    unsigned char expected_trailer[HASH_LEN], computed_hash[HASH_LEN];
+    struct hash_state state;
+    struct hash expected_hash, computed_hash;
     unsigned char *block = malloc(BLOCK_LEN);
     char *line = NULL;
     ssize_t linelen;
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     if ((storefd = open_store(argv[1])) < 0)
         die("Unable to open store");
 
-    if (crypto_generichash_init(state, NULL, 0, HASH_LEN) < 0)
+    if (hash_state_init(&state) < 0)
         die("Unable to initialize hashing state");
 
     while ((linelen = getline(&line, &n, stdin)) > 0) {
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
         if ((blocklen = read_bytes(blockfd, block, BLOCK_LEN)) <= 0)
             die_errno("Unable to read block '%s'", line);
 
-        if (crypto_generichash_update(state, block, blocklen) < 0)
+        if (hash_state_update(&state, block, blocklen) < 0)
             die("Unable to update hash");
 
         if (write_bytes(STDOUT_FILENO, block, blocklen) < 0)
@@ -105,20 +105,19 @@ int main(int argc, char *argv[])
     if (linelen < 0 && !feof(stdin))
         die_errno("Unable to read index");
 
-    if ((parse_trailer(expected_trailer, &expected_len, line)) < 0)
+    if ((parse_trailer(&expected_hash, &expected_len, line)) < 0)
         die("Unable to read index");
 
-    if (crypto_generichash_final(state, computed_hash, sizeof(computed_hash)) < 0)
+    if (hash_state_final(&computed_hash, &state) < 0)
         die("Unable to finalize hash");
 
     if (total != expected_len)
         die("Size mismatch");
 
-    if (memcmp(computed_hash, expected_trailer, sizeof(computed_hash)))
+    if (!hash_eq(&computed_hash, &expected_hash))
         die("Hash mismatch");
 
     free(line);
-    free(state);
     free(block);
 
     close(storefd);

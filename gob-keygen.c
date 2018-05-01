@@ -37,9 +37,7 @@ int main(int argc, char *argv[])
         die("Unable to initialize libsodium");
 
     crypto_kdf_keygen(key);
-
-    if (bin2hex(hex, sizeof(hex), key, sizeof(key)) < 0)
-        die("Unable to convert key to hex");
+    sodium_bin2hex(hex, sizeof(hex), key, sizeof(key));
 
     if ((fd = open(argv[1], O_EXCL|O_CREAT|O_RDWR, 0600)) < 0)
         die_errno("Unable to create keyfile '%s'", argv[1]);

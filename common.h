@@ -16,6 +16,8 @@
 #include <stddef.h>
 #include <sys/types.h>
 
+#include <sodium.h>
+
 #include "config.h"
 
 #define BLOCK_STORE_VERSION 1
@@ -42,6 +44,15 @@ struct encrypt_key {
     unsigned char data[ENCRYPTION_KEY_LEN];
 };
 
+struct hash {
+    unsigned char bin[HASH_LEN];
+    char hex[HASH_LEN * 2 + 1];
+};
+
+struct hash_state {
+    crypto_generichash_state state;
+};
+
 void die(const char *fmt, ...);
 void die_errno(const char *fmt, ...);
 void warn(const char *fmt, ...);
@@ -50,8 +61,14 @@ void version(const char *executable);
 ssize_t read_bytes(int fd, unsigned char *buf, size_t buflen);
 int write_bytes(int fd, const unsigned char *buf, size_t buflen);
 
-int bin2hex(char *out, size_t outlen, const unsigned char *in, size_t inlen);
-int hex2bin(unsigned char *out, size_t outlen, const char *in, size_t inlen);
+int hash_from_bin(struct hash *out, const unsigned char *data, size_t len);
+int hash_from_str(struct hash *out, const char *str, size_t len);
+int hash_eq(const struct hash *a, const struct hash *b);
+
+int hash_compute(struct hash *out, const unsigned char *data, size_t len);
+int hash_state_init(struct hash_state *state);
+int hash_state_update(struct hash_state *state, const unsigned char *data, size_t len);
+int hash_state_final(struct hash *out, struct hash_state *state);
 
 int open_store(const char *path);
 int open_block(int storefd, const char *hash, char create);
