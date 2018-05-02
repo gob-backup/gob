@@ -76,7 +76,6 @@ int main(int argc, char *argv[])
     while ((linelen = getline(&line, &n, stdin)) > 0) {
         struct hash hash;
         ssize_t blocklen;
-        int blockfd;
 
         if (*line == '>')
             break;
@@ -87,11 +86,8 @@ int main(int argc, char *argv[])
         if (hash_from_str(&hash, line, 0) < 0)
             die("Invalid index hash '%s'", line);
 
-        if ((blockfd = open_block(storefd, &hash, 0)) < 0)
+        if ((blocklen = read_block(block, BLOCK_LEN, storefd, &hash)) < 0)
             die_errno("Unable to open block '%s'", line);
-
-        if ((blocklen = read_bytes(blockfd, block, BLOCK_LEN)) <= 0)
-            die_errno("Unable to read block '%s'", line);
 
         if (hash_state_update(&state, block, blocklen) < 0)
             die("Unable to update hash");
@@ -100,7 +96,6 @@ int main(int argc, char *argv[])
             die_errno("Unable to write block '%s'", line);
 
         total += blocklen;
-        close(blockfd);
     }
 
     if (linelen < 0 && !feof(stdin))

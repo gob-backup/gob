@@ -72,5 +72,6 @@ int hash_state_final(struct hash *out, struct hash_state *state);
 
 int open_store(const char *path);
 int open_block(int storefd, const struct hash *hash, char create);
+int read_block(unsigned char *out, size_t outlen, int storefd, const struct hash *hash);
 
 int read_keys(struct nonce_key *nout, struct encrypt_key *cout, const char *file);

@@ -246,6 +246,35 @@ int open_block(int storefd, const struct hash *hash, char create)
     return fd;
 }
 
+int read_block(unsigned char *out, size_t outlen, int storefd, const struct hash *hash)
+{
+    struct stat st;
+    char shard[3];
+    int fd, shardfd;
+    ssize_t len;
+
+    shard[0] = hash->hex[0];
+    shard[1] = hash->hex[1];
+    shard[2] = '\0';
+
+    if ((shardfd = openat(storefd, shard, O_RDONLY)) < 0)
+        die_errno("Unable to open sharding directory '%s'", shard);
+
+    if (fstat(shardfd, &st) < 0 || !S_ISDIR(st.st_mode))
+        die("Shard is not a directory");
+
+    if ((fd = openat(shardfd, hash->hex + 2, O_RDONLY)) < 0)
+        die_errno("Unable to open block '%s'", hash->hex);
+
+    if ((len = read_bytes(fd, out, outlen)) < 0)
+        die_errno("Unable to read block '%s'", hash->hex);
+
+    close(shardfd);
+    close(fd);
+
+    return len;
+}
+
 int read_keys(struct nonce_key *nout, struct encrypt_key *cout, const char *file)
 {
     unsigned char masterkey[MASTER_KEY_LEN];
