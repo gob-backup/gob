@@ -209,41 +209,49 @@ int open_store(const char *path)
     return storefd;
 }
 
-int open_block(int storefd, const struct hash *hash, char create)
+int write_block(struct hash *out, int storefd, const unsigned char *data, size_t datalen)
 {
+    struct hash hash;
     struct stat st;
     char shard[3];
     int fd, shardfd;
 
-    shard[0] = hash->hex[0];
-    shard[1] = hash->hex[1];
+    if (hash_compute(&hash, data, datalen) < 0)
+        die("Unable to hash block");
+
+    shard[0] = hash.hex[0];
+    shard[1] = hash.hex[1];
     shard[2] = '\0';
 
     if ((shardfd = openat(storefd, shard, O_RDONLY)) < 0) {
-        if (create) {
-            if (mkdirat(storefd, shard, 0755) < 0)
-                die_errno("Unable to create sharding directory '%s'", shard);
-            if ((shardfd = openat(storefd, shard, O_RDONLY)) < 0)
-                die_errno("Unable to open sharding directory '%s'", shard);
-        } else {
+        if (mkdirat(storefd, shard, 0755) < 0)
+            die_errno("Unable to create sharding directory '%s'", shard);
+        if ((shardfd = openat(storefd, shard, O_RDONLY)) < 0)
             die_errno("Unable to open sharding directory '%s'", shard);
-        }
     }
 
-    if (fstat(storefd, &st) < 0 || !S_ISDIR(st.st_mode))
-        die("Storage is not a directory");
+    if (fstat(shardfd, &st) < 0 || !S_ISDIR(st.st_mode))
+        die("Shard is not a directory");
 
-    if (create) {
-        fd = openat(shardfd, hash->hex + 2, O_CREAT|O_EXCL|O_WRONLY, 0644);
-        if (fd < 0 && errno != EEXIST)
-            die_errno("Unable to create block '%s'", hash->hex);
-    } else if ((fd = openat(shardfd, hash->hex + 2, O_RDONLY)) < 0) {
-            die_errno("Unable to open block '%s'", hash->hex);
+    fd = openat(shardfd, hash.hex + 2, O_CREAT|O_EXCL|O_WRONLY, 0644);
+    if (fd < 0) {
+        if (errno == EEXIST)
+            goto out;
+        die_errno("Unable to create block '%s'", hash.hex);
     }
+
+    if (write_bytes(fd, data, datalen) < 0)
+        die_errno("Unable to write block '%s'", hash.hex);
+
+out:
+    if (out)
+        memcpy(out, &hash, sizeof(*out));
 
     close(shardfd);
+    if (fd >= 0)
+        close(fd);
 
-    return fd;
+    return 0;
 }
 
 int read_block(unsigned char *out, size_t outlen, int storefd, const struct hash *hash)
