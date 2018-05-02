@@ -30,8 +30,9 @@ static unsigned char *block;
 
 static int scan_shard(int storefd, const char *shard)
 {
-    unsigned char computed_hash[HASH_LEN], expected_hash[HASH_LEN];
+    struct hash computed_hash, expected_hash;
     struct dirent *ent;
+    char filehash[HASH_LEN * 2 + 1];
     DIR *sharddir = NULL;
     int shardfd = -1, err = 0;
 
@@ -78,20 +79,22 @@ static int scan_shard(int storefd, const char *shard)
             goto next;
         }
 
-        if (crypto_generichash(computed_hash, sizeof(computed_hash), block, bytes, NULL, 0) < 0) {
+        if (hash_compute(&computed_hash, block, bytes) < 0) {
             warn("Unable to hash block");
             err = -1;
             goto next;
         }
 
-        if (hex2bin(expected_hash, 1, shard, 2) < 0 ||
-                hex2bin(expected_hash + 1, sizeof(expected_hash) - 1, ent->d_name, strlen(ent->d_name)) < 0) {
-            warn("Unable to convert block name to hash");
+        if (snprintf(filehash, sizeof(filehash), "%s%s",
+                    shard, ent->d_name) != HASH_LEN * 2 ||
+            hash_from_str(&expected_hash, filehash, 0) < 0)
+        {
+            warn("File name is not a valid hash");
             err = -1;
             goto next;
         }
 
-        if (memcmp(computed_hash, expected_hash, sizeof(computed_hash))) {
+        if (!hash_eq(&computed_hash, &expected_hash)) {
             warn("Hash mismatch for block %s%s", shard, ent->d_name);
             err = -1;
             goto next;
