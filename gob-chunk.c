@@ -35,7 +35,7 @@ static int store_block(int storefd, unsigned char *block, size_t blocklen)
     if (hash_compute(&hash, block, blocklen) < 0)
         die("Unable to hash block");
 
-    if ((fd = open_block(storefd, hash.hex, 1)) >= 0) {
+    if ((fd = open_block(storefd, &hash, 1)) >= 0) {
         if (write_bytes(fd, block, blocklen) < 0)
             die_errno("Unable to write block '%s'", hash.hex);
         close(fd);

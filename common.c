@@ -209,14 +209,14 @@ int open_store(const char *path)
     return storefd;
 }
 
-int open_block(int storefd, const char *hash, char create)
+int open_block(int storefd, const struct hash *hash, char create)
 {
     struct stat st;
     char shard[3];
     int fd, shardfd;
 
-    shard[0] = hash[0];
-    shard[1] = hash[1];
+    shard[0] = hash->hex[0];
+    shard[1] = hash->hex[1];
     shard[2] = '\0';
 
     if ((shardfd = openat(storefd, shard, O_RDONLY)) < 0) {
@@ -234,11 +234,11 @@ int open_block(int storefd, const char *hash, char create)
         die("Storage is not a directory");
 
     if (create) {
-        fd = openat(shardfd, hash + 2, O_CREAT|O_EXCL|O_WRONLY, 0644);
+        fd = openat(shardfd, hash->hex + 2, O_CREAT|O_EXCL|O_WRONLY, 0644);
         if (fd < 0 && errno != EEXIST)
-            die_errno("Unable to create block '%s'", hash);
-    } else if ((fd = openat(shardfd, hash + 2, O_RDONLY)) < 0) {
-            die_errno("Unable to open block '%s'", hash);
+            die_errno("Unable to create block '%s'", hash->hex);
+    } else if ((fd = openat(shardfd, hash->hex + 2, O_RDONLY)) < 0) {
+            die_errno("Unable to open block '%s'", hash->hex);
     }
 
     close(shardfd);
