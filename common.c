@@ -110,6 +110,7 @@ int hash_from_bin(struct hash *out, const unsigned char *data, size_t len)
     if (len != HASH_LEN)
         return -1;
     memcpy(&out->bin[0], data, len);
+    memset(&out->hex[0], 0, sizeof(out->hex));
     sodium_bin2hex(&out->hex[0], sizeof(out->hex), data, len);
     return 0;
 }
@@ -128,6 +129,7 @@ int hash_from_str(struct hash *out, const char *str, size_t len)
     if (parsed_len != sizeof(out->bin))
         return -1;
 
+    memset(&out->hex[0], 0, sizeof(out->hex));
     strncpy(&out->hex[0], str, len);
 
     return 0;
