@@ -53,6 +53,10 @@ struct hash_state {
     crypto_generichash_state state;
 };
 
+struct store {
+    int fd;
+};
+
 void die(const char *fmt, ...);
 void die_errno(const char *fmt, ...);
 void warn(const char *fmt, ...);
@@ -70,7 +74,8 @@ int hash_state_init(struct hash_state *state);
 int hash_state_update(struct hash_state *state, const unsigned char *data, size_t len);
 int hash_state_final(struct hash *out, struct hash_state *state);
 
-int open_store(const char *path);
+int store_open(struct store *out, const char *path);
+void store_close(struct store *store);
 int write_block(struct hash *out, int storefd, const unsigned char *data, size_t datalen);
 int read_block(unsigned char *out, size_t outlen, int storefd, const struct hash *hash);
 

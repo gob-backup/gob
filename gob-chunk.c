@@ -32,9 +32,9 @@ int main(int argc, char *argv[])
     unsigned char *block = malloc(BLOCK_LEN);
     struct hash_state state;
     struct hash hash;
+    struct store store;
     size_t total = 0;
     ssize_t bytes;
-    int storefd;
 
     if (argc != 2)
         die("USAGE: %s ( --version | <DIR> )", argv[0]);
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     if (!strcmp(argv[1], "--version"))
         version("gob-chunk");
 
-    if ((storefd = open_store(argv[1])) < 0)
+    if (store_open(&store, argv[1]) < 0)
         die("Unable to open store");
 
     if (hash_state_init(&state) < 0)
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 
         if (hash_state_update(&state, block, bytes) < 0)
             die("Unable to update hash");
-        if (write_block(&hash, storefd, block, bytes) < 0)
+        if (write_block(&hash, store.fd, block, bytes) < 0)
             die("Unable to store block");
         puts(hash.hex);
     }
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
     printf(">%s %"PRIuMAX"\n", hash.hex, total);
 
     free(block);
-    close(storefd);
+    store_close(&store);
 
     return 0;
 }

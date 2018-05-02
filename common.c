@@ -173,7 +173,7 @@ int hash_state_final(struct hash *out, struct hash_state *state)
     return hash_from_bin(out, hash, sizeof(hash));
 }
 
-int open_store(const char *path)
+int store_open(struct store *out, const char *path)
 {
     struct stat st;
     int storefd, versionfd;
@@ -206,7 +206,14 @@ int open_store(const char *path)
 
     close(versionfd);
 
-    return storefd;
+    out->fd = storefd;
+
+    return 0;
+}
+
+void store_close(struct store *store)
+{
+    close(store->fd);
 }
 
 int write_block(struct hash *out, int storefd, const unsigned char *data, size_t datalen)

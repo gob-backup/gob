@@ -55,11 +55,11 @@ int main(int argc, char *argv[])
 {
     struct hash_state state;
     struct hash expected_hash, computed_hash;
+    struct store store;
     unsigned char *block = malloc(BLOCK_LEN);
     char *line = NULL;
     ssize_t linelen;
     size_t total = 0, n = 0, expected_len;
-    int storefd;
 
     if (argc != 2)
         die("USAGE: %s ( --version | <DIR> )", argv[0]);
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     if (!strcmp(argv[1], "--version"))
         version("gob-cat");
 
-    if ((storefd = open_store(argv[1])) < 0)
+    if (store_open(&store, argv[1]) < 0)
         die("Unable to open store");
 
     if (hash_state_init(&state) < 0)
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
         if (hash_from_str(&hash, line, 0) < 0)
             die("Invalid index hash '%s'", line);
 
-        if ((blocklen = read_block(block, BLOCK_LEN, storefd, &hash)) < 0)
+        if ((blocklen = read_block(block, BLOCK_LEN, store.fd, &hash)) < 0)
             die_errno("Unable to open block '%s'", line);
 
         if (hash_state_update(&state, block, blocklen) < 0)
@@ -115,8 +115,7 @@ int main(int argc, char *argv[])
 
     free(line);
     free(block);
-
-    close(storefd);
+    store_close(&store);
 
     return 0;
 }
