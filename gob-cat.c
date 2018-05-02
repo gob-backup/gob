@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
         if (hash_from_str(&hash, line, 0) < 0)
             die("Invalid index hash '%s'", line);
 
-        if ((blocklen = read_block(block, BLOCK_LEN, store.fd, &hash)) < 0)
+        if ((blocklen = store_read(block, BLOCK_LEN, &store, &hash)) < 0)
             die_errno("Unable to open block '%s'", line);
 
         if (hash_state_update(&state, block, blocklen) < 0)

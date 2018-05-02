@@ -76,7 +76,7 @@ int hash_state_final(struct hash *out, struct hash_state *state);
 
 int store_open(struct store *out, const char *path);
 void store_close(struct store *store);
-int write_block(struct hash *out, int storefd, const unsigned char *data, size_t datalen);
-int read_block(unsigned char *out, size_t outlen, int storefd, const struct hash *hash);
+int store_write(struct hash *out, const struct store *store, const unsigned char *data, size_t datalen);
+int store_read(unsigned char *out, size_t outlen, const struct store *store, const struct hash *hash);
 
 int read_keys(struct nonce_key *nout, struct encrypt_key *cout, const char *file);

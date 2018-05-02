@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 
         if (hash_state_update(&state, block, bytes) < 0)
             die("Unable to update hash");
-        if (write_block(&hash, store.fd, block, bytes) < 0)
+        if (store_write(&hash, &store, block, bytes) < 0)
             die("Unable to store block");
         puts(hash.hex);
     }
