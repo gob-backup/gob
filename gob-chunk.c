@@ -27,33 +27,14 @@
 #include "config.h"
 #include "common.h"
 
-static int store_block(int storefd, unsigned char *block, size_t blocklen)
-{
-    struct hash hash;
-    int fd;
-
-    if (hash_compute(&hash, block, blocklen) < 0)
-        die("Unable to hash block");
-
-    if ((fd = open_block(storefd, hash.hex, 1)) >= 0) {
-        if (write_bytes(fd, block, blocklen) < 0)
-            die_errno("Unable to write block '%s'", hash.hex);
-        close(fd);
-    }
-
-    puts(hash.hex);
-
-    return 0;
-}
-
 int main(int argc, char *argv[])
 {
     unsigned char *block = malloc(BLOCK_LEN);
     struct hash_state state;
     struct hash hash;
+    struct store store;
     size_t total = 0;
     ssize_t bytes;
-    int storefd;
 
     if (argc != 2)
         die("USAGE: %s ( --version | <DIR> )", argv[0]);
@@ -61,19 +42,22 @@ int main(int argc, char *argv[])
     if (!strcmp(argv[1], "--version"))
         version("gob-chunk");
 
-    if ((storefd = open_store(argv[1])) < 0)
+    if (store_open(&store, argv[1]) < 0)
         die("Unable to open store");
 
     if (hash_state_init(&state) < 0)
         die("Unable to initialize hashing state");
 
     while ((bytes = read_bytes(STDIN_FILENO, block, BLOCK_LEN)) > 0) {
+        struct hash hash;
+
         total += bytes;
 
         if (hash_state_update(&state, block, bytes) < 0)
             die("Unable to update hash");
-        if (store_block(storefd, block, bytes) < 0)
+        if (store_write(&hash, &store, block, bytes) < 0)
             die("Unable to store block");
+        puts(hash.hex);
     }
 
     if (bytes < 0)
@@ -85,7 +69,7 @@ int main(int argc, char *argv[])
     printf(">%s %"PRIuMAX"\n", hash.hex, total);
 
     free(block);
-    close(storefd);
+    store_close(&store);
 
     return 0;
 }

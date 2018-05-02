@@ -123,9 +123,10 @@ out:
 
 int main(int argc, char *argv[])
 {
+    struct store store;
     struct dirent *ent;
     DIR *storedir;
-    int storefd, err = 0;
+    int err = 0;
 
     if (argc != 2)
         die("USAGE: %s ( --version | <DIR> )", argv[0]);
@@ -136,10 +137,10 @@ int main(int argc, char *argv[])
     if ((block = malloc(BLOCK_LEN)) == NULL)
         die_errno("Unable to allocate block");
 
-    if ((storefd = open_store(argv[1])) < 0)
+    if (store_open(&store, argv[1]) < 0)
         die_errno("Unable to open store");
 
-    if ((storedir = fdopendir(storefd)) == NULL)
+    if ((storedir = fdopendir(store.fd)) == NULL)
         die_errno("Unable to open store directory");
 
     while ((ent = readdir(storedir)) != NULL) {
@@ -148,7 +149,7 @@ int main(int argc, char *argv[])
         if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, "..") || !strcmp(ent->d_name, "version"))
             continue;
 
-        if (fstatat(storefd, ent->d_name, &stat, 0) < 0) {
+        if (fstatat(store.fd, ent->d_name, &stat, 0) < 0) {
             warn("unable to stat shard '%s'", ent->d_name);
             err = -1;
             continue;
@@ -169,16 +170,16 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        if (scan_shard(storefd, ent->d_name) < 0) {
+        if (scan_shard(store.fd, ent->d_name) < 0) {
             warn("invalid sharding directory '%s/%s'", argv[1], ent->d_name);
             err = -1;
             continue;
         }
     }
 
-    closedir(storedir);
-    close(storefd);
     free(block);
+    closedir(storedir);
+    store_close(&store);
 
     return err;
 }
