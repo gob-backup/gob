@@ -176,7 +176,7 @@ int hash_state_final(struct hash *out, struct hash_state *state)
 int store_open(struct store *out, const char *path)
 {
     struct stat st;
-    int storefd, versionfd;
+    int i, storefd, versionfd;
     uint32_t version;
 
     if ((storefd = open(path, O_RDONLY)) < 0)
@@ -207,20 +207,30 @@ int store_open(struct store *out, const char *path)
     close(versionfd);
 
     out->fd = storefd;
+    for (i = 0; i < 256; i++)
+        out->shardfds[i] = -1;
 
     return 0;
 }
 
 void store_close(struct store *store)
 {
+    int i;
+
     close(store->fd);
+    for (i = 0; i < 256; i++)
+        if (store->shardfds[i] >= 0)
+            close(store->shardfds[i]);
 }
 
-static int open_shard(const struct store *store, const struct hash *hash, int create)
+static int open_shard(struct store *store, const struct hash *hash, int create)
 {
     struct stat st;
     char shard[3];
     int shardfd;
+
+    if ((shardfd = store->shardfds[hash->bin[0]]) >= 0)
+        return shardfd;
 
     shard[0] = hash->hex[0];
     shard[1] = hash->hex[1];
@@ -241,10 +251,11 @@ static int open_shard(const struct store *store, const struct hash *hash, int cr
         die_errno("Unable to open sharding directory '%s'", shard);
 
 out:
+    store->shardfds[hash->bin[0]] = shardfd;
     return shardfd;
 }
 
-int store_write(struct hash *out, const struct store *store, const unsigned char *data, size_t datalen)
+int store_write(struct hash *out, struct store *store, const unsigned char *data, size_t datalen)
 {
     struct hash hash;
     int fd, shardfd;
@@ -268,14 +279,13 @@ out:
     if (out)
         memcpy(out, &hash, sizeof(*out));
 
-    close(shardfd);
     if (fd >= 0)
         close(fd);
 
     return 0;
 }
 
-int store_read(unsigned char *out, size_t outlen, const struct store *store, const struct hash *hash)
+int store_read(unsigned char *out, size_t outlen, struct store *store, const struct hash *hash)
 {
     int fd, shardfd;
     ssize_t len;
@@ -289,7 +299,6 @@ int store_read(unsigned char *out, size_t outlen, const struct store *store, con
     if ((len = read_bytes(fd, out, outlen)) < 0)
         die_errno("Unable to read block '%s'", hash->hex);
 
-    close(shardfd);
     close(fd);
 
     return len;

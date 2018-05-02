@@ -55,6 +55,7 @@ struct hash_state {
 
 struct store {
     int fd;
+    int shardfds[256];
 };
 
 void die(const char *fmt, ...);
@@ -76,7 +77,7 @@ int hash_state_final(struct hash *out, struct hash_state *state);
 
 int store_open(struct store *out, const char *path);
 void store_close(struct store *store);
-int store_write(struct hash *out, const struct store *store, const unsigned char *data, size_t datalen);
-int store_read(unsigned char *out, size_t outlen, const struct store *store, const struct hash *hash);
+int store_write(struct hash *out, struct store *store, const unsigned char *data, size_t datalen);
+int store_read(unsigned char *out, size_t outlen, struct store *store, const struct hash *hash);
 
 int read_keys(struct nonce_key *nout, struct encrypt_key *cout, const char *file);
