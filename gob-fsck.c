@@ -13,6 +13,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <sys/stat.h>
+
 #include <dirent.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -50,11 +52,18 @@ static int scan_shard(int storefd, const char *shard)
 
     while ((ent = readdir(sharddir)) != NULL) {
         int bytes, blockfd = -1;
+        struct stat stat;
 
         if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
             continue;
 
-        if (ent->d_type != DT_REG) {
+        if (fstatat(shardfd, ent->d_name, &stat, 0) < 0) {
+            warn("unable to stat '%s/%s'", shard, ent->d_name);
+            err = -1;
+            goto next;
+        }
+
+        if (!S_ISREG(stat.st_mode)) {
             warn("invalid entry '%s/%s'", shard, ent->d_name);
             err = -1;
             goto next;
@@ -134,10 +143,18 @@ int main(int argc, char *argv[])
         die_errno("Unable to open store directory");
 
     while ((ent = readdir(storedir)) != NULL) {
+        struct stat stat;
+
         if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, "..") || !strcmp(ent->d_name, "version"))
             continue;
 
-        if (ent->d_type != DT_DIR) {
+        if (fstatat(storefd, ent->d_name, &stat, 0) < 0) {
+            warn("unable to stat shard '%s'", ent->d_name);
+            err = -1;
+            continue;
+        }
+
+        if (!S_ISDIR(stat.st_mode)) {
             warn("invalid entry '%s/%s'", argv[1], ent->d_name);
             err = -1;
             continue;
