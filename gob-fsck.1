@@ -1,0 +1,26 @@
+.TH GOB-FSCK "1"
+.SH NAME
+gob-fsck \- Verify consistency of a block storage
+.SH SYNOPSIS
+.B gob-fsck (\-\-version | <BLOCKSTORAGE>)
+.SH DESCRIPTION
+gob-fsck will verify integrity of a block storage.
+It will perform the following checks:
+.RS 4
+.IP \- 2
+verify structure of sharding directories
+.IP \- 2
+verify structure of block files
+.IP \- 2
+verify hashes of block files
+.RE
+.SH OPTIONS
+\-\-version
+.RS 4
+Show version and build information.
+.RE
+.PP
+<BLOCKSTORAGE>
+.RS 4
+Path to the block storage that shall be checked for consistency.
+.RE
