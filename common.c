@@ -216,32 +216,46 @@ void store_close(struct store *store)
     close(store->fd);
 }
 
+static int open_shard(const struct store *store, const struct hash *hash, int create)
+{
+    struct stat st;
+    char shard[3];
+    int shardfd;
+
+    shard[0] = hash->hex[0];
+    shard[1] = hash->hex[1];
+    shard[2] = '\0';
+
+    if ((shardfd = openat(store->fd, shard, O_RDONLY)) >= 0) {
+        if (fstat(shardfd, &st) < 0 || !S_ISDIR(st.st_mode))
+            die("Shard is not a directory");
+        goto out;
+    }
+
+    if (!create)
+        die_errno("Unable to open sharding directory '%s'", shard);
+
+    if (mkdirat(store->fd, shard, 0755) < 0)
+        die_errno("Unable to create sharding directory '%s'", shard);
+    if ((shardfd = openat(store->fd, shard, O_RDONLY)) < 0)
+        die_errno("Unable to open sharding directory '%s'", shard);
+
+out:
+    return shardfd;
+}
+
 int store_write(struct hash *out, const struct store *store, const unsigned char *data, size_t datalen)
 {
     struct hash hash;
-    struct stat st;
-    char shard[3];
     int fd, shardfd;
 
     if (hash_compute(&hash, data, datalen) < 0)
         die("Unable to hash block");
 
-    shard[0] = hash.hex[0];
-    shard[1] = hash.hex[1];
-    shard[2] = '\0';
+    if ((shardfd = open_shard(store, &hash, 1)) < 0)
+        die("Unable to open shard");
 
-    if ((shardfd = openat(store->fd, shard, O_RDONLY)) < 0) {
-        if (mkdirat(store->fd, shard, 0755) < 0)
-            die_errno("Unable to create sharding directory '%s'", shard);
-        if ((shardfd = openat(store->fd, shard, O_RDONLY)) < 0)
-            die_errno("Unable to open sharding directory '%s'", shard);
-    }
-
-    if (fstat(shardfd, &st) < 0 || !S_ISDIR(st.st_mode))
-        die("Shard is not a directory");
-
-    fd = openat(shardfd, hash.hex + 2, O_CREAT|O_EXCL|O_WRONLY, 0644);
-    if (fd < 0) {
+    if ((fd = openat(shardfd, hash.hex + 2, O_CREAT|O_EXCL|O_WRONLY, 0644)) < 0) {
         if (errno == EEXIST)
             goto out;
         die_errno("Unable to create block '%s'", hash.hex);
@@ -263,20 +277,11 @@ out:
 
 int store_read(unsigned char *out, size_t outlen, const struct store *store, const struct hash *hash)
 {
-    struct stat st;
-    char shard[3];
     int fd, shardfd;
     ssize_t len;
 
-    shard[0] = hash->hex[0];
-    shard[1] = hash->hex[1];
-    shard[2] = '\0';
-
-    if ((shardfd = openat(store->fd, shard, O_RDONLY)) < 0)
-        die_errno("Unable to open sharding directory '%s'", shard);
-
-    if (fstat(shardfd, &st) < 0 || !S_ISDIR(st.st_mode))
-        die("Shard is not a directory");
+    if ((shardfd = open_shard(store, hash, 0)) < 0)
+        die("Unable to open shard");
 
     if ((fd = openat(shardfd, hash->hex + 2, O_RDONLY)) < 0)
         die_errno("Unable to open block '%s'", hash->hex);
