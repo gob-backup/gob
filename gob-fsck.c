@@ -115,9 +115,11 @@ next:
     }
 
 out:
-    closedir(sharddir);
-    if (close(shardfd) >= 0)
+    if (sharddir) {
+        closedir(sharddir);
+    } else if (shardfd >= 0) {
         close(shardfd);
+    }
     return err;
 }
 
