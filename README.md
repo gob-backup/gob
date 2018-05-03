@@ -2,6 +2,7 @@ gob - block-based backups
 =========================
 
 [![Travis Build Status](https://secure.travis-ci.org/gob-backup/gob.svg?branch=master)](http://travis-ci.org/gob-backup/gob)
+[![Coverity Status](https://scan.coverity.com/projects/15683/badge.svg)](https://scan.coverity.com/projects/gob-backup-gob)
 
 `gob` is a block-based backup utility in pure C. It tries to be
 as simple as possible while doing everything necessary to create
