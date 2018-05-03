@@ -1,6 +1,5 @@
 language: c
 
-dist: trusty
 sudo: false
 
 addons:
@@ -10,14 +9,30 @@ addons:
     packages:
      - libsodium23
      - libsodium-dev
+  coverity_scan:
+    project:
+      name: gob-backup/gob
+      description: Block-based deduplicating backups
+    notification_email: gob@pks.im
+    build_command: make
+    branch_pattern: coverity_scan
 
-os:
-  - linux
-  - osx
-
-compiler:
-  - gcc
-  - clang
+matrix:
+ fast_finish: true
+ include:
+   - os: linux
+     dist: trusty
+     compiler: gcc
+   - os: linux
+     dist: trusty
+     compiler: clang
+     if: branch != coverity_scan
+   - os: osx
+     compiler: gcc
+     if: branch != coverity_scan
+   - os: osx
+     compiler: clang
+     if: branch != coverity_scan
 
 install:
   - if test ${TRAVIS_OS_NAME} = "osx"; then brew install libsodium; fi
@@ -30,3 +45,4 @@ script:
 branches:
  only:
    - master
+   - coverity_scan
