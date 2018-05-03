@@ -26,10 +26,13 @@ matrix:
    - os: linux
      dist: trusty
      compiler: clang
+     if: branch != coverity_scan
    - os: osx
      compiler: gcc
+     if: branch != coverity_scan
    - os: osx
      compiler: clang
+     if: branch != coverity_scan
 
 install:
   - if test ${TRAVIS_OS_NAME} = "osx"; then brew install libsodium; fi
