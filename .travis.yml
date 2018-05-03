@@ -9,6 +9,13 @@ addons:
     packages:
      - libsodium23
      - libsodium-dev
+  coverity_scan:
+    project:
+      name: gob-backup/gob
+      description: Block-based deduplicating backups
+    notification_email: gob@pks.im
+    build_command: make
+    branch_pattern: coverity_scan
 
 matrix:
  fast_finish: true
@@ -35,3 +42,4 @@ script:
 branches:
  only:
    - master
+   - coverity_scan
