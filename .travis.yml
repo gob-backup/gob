@@ -1,6 +1,5 @@
 language: c
 
-dist: trusty
 sudo: false
 
 addons:
@@ -11,13 +10,19 @@ addons:
      - libsodium23
      - libsodium-dev
 
-os:
-  - linux
-  - osx
-
-compiler:
-  - gcc
-  - clang
+matrix:
+ fast_finish: true
+ include:
+   - os: linux
+     dist: trusty
+     compiler: gcc
+   - os: linux
+     dist: trusty
+     compiler: clang
+   - os: osx
+     compiler: gcc
+   - os: osx
+     compiler: clang
 
 install:
   - if test ${TRAVIS_OS_NAME} = "osx"; then brew install libsodium; fi
