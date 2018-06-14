@@ -272,15 +272,14 @@ int store_write(struct hash *out, struct store *store, const unsigned char *data
         die_errno("Unable to create block '%s'", hash.hex);
     }
 
-    if (write_bytes(fd, data, datalen) < 0)
+    if (write_bytes(fd, data, datalen) < 0 || close(fd) < 0) {
+        unlinkat(shardfd, hash.hex + 2, 0);
         die_errno("Unable to write block '%s'", hash.hex);
+    }
 
 out:
     if (out)
         memcpy(out, &hash, sizeof(*out));
-
-    if (fd >= 0)
-        close(fd);
 
     return 0;
 }
