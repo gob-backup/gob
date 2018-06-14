@@ -273,6 +273,7 @@ int store_write(struct hash *out, struct store *store, const unsigned char *data
     }
 
     if (write_bytes(fd, data, datalen) < 0 || close(fd) < 0) {
+        unlinkat(shardfd, hash.hex + 2, 0);
         die_errno("Unable to write block '%s'", hash.hex);
     }
 
