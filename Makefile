@@ -47,7 +47,8 @@ gob-keygen: ${KEYGEN_OBJECTS}
 	@echo "LD $@"
 	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
 
-%.o: %.c common.h config.h config.mk Makefile
+.SUFFIXES: .c .o
+.c.o: common.h config.h config.mk Makefile
 	@echo "CC $@"
 	@${CC} -c ${CFLAGS} ${CPPFLAGS} -o $@ $<
 
