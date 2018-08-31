@@ -25,27 +25,27 @@ all: ${PROGRAMS}
 
 gob-chunk: ${CHUNK_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
+	@${CC} ${LDFLAGS} -o $@ ${CHUNK_OBJECTS} ${LDLIBS}
 
 gob-cat: ${CAT_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
+	@${CC} ${LDFLAGS} -o $@ ${CAT_OBJECTS} ${LDLIBS}
 
 gob-decrypt: ${DECRYPT_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
+	@${CC} ${LDFLAGS} -o $@ ${DECRYPT_OBJECTS} ${LDLIBS}
 
 gob-encrypt: ${ENCRYPT_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
+	@${CC} ${LDFLAGS} -o $@ ${ENCRYPT_OBJECTS} ${LDLIBS}
 
 gob-fsck: ${FSCK_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
+	@${CC} ${LDFLAGS} -o $@ ${FSCK_OBJECTS} ${LDLIBS}
 
 gob-keygen: ${KEYGEN_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
+	@${CC} ${LDFLAGS} -o $@ ${KEYGEN_OBJECTS} ${LDLIBS}
 
 .SUFFIXES: .c .o
 .c.o: common.h config.h config.mk Makefile
