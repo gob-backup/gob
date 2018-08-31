@@ -1,7 +1,7 @@
 include config.mk
 
 PROGRAMS=gob-cat gob-chunk gob-decrypt gob-encrypt gob-fsck gob-keygen
-MANPAGES=$(patsubst %,%.1,${PROGRAMS})
+MANPAGES=${PROGRAMS:=.1}
 
 CAT_SOURCES=gob-cat.c common.c
 CAT_OBJECTS=${CAT_SOURCES:.c=.o}
