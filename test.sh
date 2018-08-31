@@ -157,7 +157,7 @@ test_expect_success 'cat with invalid trailer hash fails' '
 '
 
 test_expect_success 'cat with missing trailer fails' '
-	assert_success "echo foobar | gob-chunk blocks | head -n-1 >index" &&
+	assert_success "echo foobar | gob-chunk blocks | head -n1 >index" &&
 	assert_failure "cat index | gob-cat blocks"
 '
 
