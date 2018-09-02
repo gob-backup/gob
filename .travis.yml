@@ -6,6 +6,7 @@ addons:
   apt:
     sources:
      - sourceline: 'deb https://dl.bintray.com/gob-backup/travis-deps trusty main'
+       key_url: 'https://bintray.com/user/downloadSubjectPublicKey?username=bintray'
     packages:
      - libsodium23
      - libsodium-dev
