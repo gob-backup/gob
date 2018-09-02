@@ -1,53 +1,54 @@
 include config.mk
 
 PROGRAMS=gob-cat gob-chunk gob-decrypt gob-encrypt gob-fsck gob-keygen
-MANPAGES=$(patsubst %,%.1,${PROGRAMS})
+MANPAGES=${PROGRAMS:=.1}
 
 CAT_SOURCES=gob-cat.c common.c
-CAT_OBJECTS=${CAT_SOURCES:%.c=%.o}
+CAT_OBJECTS=${CAT_SOURCES:.c=.o}
 
 CHUNK_SOURCES=gob-chunk.c common.c
-CHUNK_OBJECTS=${CHUNK_SOURCES:%.c=%.o}
+CHUNK_OBJECTS=${CHUNK_SOURCES:.c=.o}
 
 DECRYPT_SOURCES=gob-decrypt.c common.c
-DECRYPT_OBJECTS=${DECRYPT_SOURCES:%.c=%.o}
+DECRYPT_OBJECTS=${DECRYPT_SOURCES:.c=.o}
 
 ENCRYPT_SOURCES=gob-encrypt.c common.c
-ENCRYPT_OBJECTS=${ENCRYPT_SOURCES:%.c=%.o}
+ENCRYPT_OBJECTS=${ENCRYPT_SOURCES:.c=.o}
 
 FSCK_SOURCES=gob-fsck.c common.c
-FSCK_OBJECTS=${FSCK_SOURCES:%.c=%.o}
+FSCK_OBJECTS=${FSCK_SOURCES:.c=.o}
 
 KEYGEN_SOURCES=gob-keygen.c common.c
-KEYGEN_OBJECTS=${KEYGEN_SOURCES:%.c=%.o}
+KEYGEN_OBJECTS=${KEYGEN_SOURCES:.c=.o}
 
 all: ${PROGRAMS}
 
 gob-chunk: ${CHUNK_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
+	@${CC} ${LDFLAGS} -o $@ ${CHUNK_OBJECTS} ${LDLIBS}
 
 gob-cat: ${CAT_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
+	@${CC} ${LDFLAGS} -o $@ ${CAT_OBJECTS} ${LDLIBS}
 
 gob-decrypt: ${DECRYPT_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
+	@${CC} ${LDFLAGS} -o $@ ${DECRYPT_OBJECTS} ${LDLIBS}
 
 gob-encrypt: ${ENCRYPT_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
+	@${CC} ${LDFLAGS} -o $@ ${ENCRYPT_OBJECTS} ${LDLIBS}
 
 gob-fsck: ${FSCK_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
+	@${CC} ${LDFLAGS} -o $@ ${FSCK_OBJECTS} ${LDLIBS}
 
 gob-keygen: ${KEYGEN_OBJECTS}
 	@echo "LD $@"
-	@${CC} ${LDFLAGS} -o $@ $^ ${LDLIBS}
+	@${CC} ${LDFLAGS} -o $@ ${KEYGEN_OBJECTS} ${LDLIBS}
 
-%.o: %.c common.h config.h config.mk Makefile
+.SUFFIXES: .c .o
+.c.o: common.h config.h config.mk Makefile
 	@echo "CC $@"
 	@${CC} -c ${CFLAGS} ${CPPFLAGS} -o $@ $<
 

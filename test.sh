@@ -64,13 +64,13 @@ test_expect_success 'generate a deterministic key' '
 '
 
 test_expect_success 'encryption generates fixed blocksize' '
-	assert_success "echo test | gob-encrypt key | wc -c >actual" &&
+	assert_success "echo test | gob-encrypt key | wc -c | xargs >actual" &&
 	echo $((4096 * 1024)) >expected &&
 	assert_equal actual expected
 '
 
 test_expect_success 'encryption generates multiples of blocksize' '
-	assert_success "dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key | wc -c >actual" &&
+	assert_success "dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key | wc -c | xargs >actual" &&
 	echo $((4096 * 1024 * 2)) >expected &&
 	assert_equal actual expected
 '
@@ -157,7 +157,7 @@ test_expect_success 'cat with invalid trailer hash fails' '
 '
 
 test_expect_success 'cat with missing trailer fails' '
-	assert_success "echo foobar | gob-chunk blocks | head -n-1 >index" &&
+	assert_success "echo foobar | gob-chunk blocks | head -n1 >index" &&
 	assert_failure "cat index | gob-cat blocks"
 '
 
