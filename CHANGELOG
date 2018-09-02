@@ -1,3 +1,20 @@
+gob v0.6
+========
+
+Changes
+-------
+
+- Build instructions and tests have been adjusted to not include
+  non-POSIX instructions. This enables support for OpenBSD.
+
+- When writing a block into the block store, gob will now first
+  write everything into a temporary file and then rename that
+  file to have the final name. This will ensure that gob will
+  never put partially written blocks at a final block path.
+
+- Travis CI has been fixed to check the signature of packages
+  installed via Bintray.
+
 gob v0.5
 ========
 
