@@ -1,0 +1,94 @@
+gob v0.5
+========
+
+Additions
+---------
+
+- A new tool "gob-fsck" has been added that checks an object
+  storage for consistency.
+
+- A CI job has been added to do static analysis on gob's sources
+  via Coverity.
+
+Changes
+-------
+
+
+- Previously, gob-chunk would just error out and leave the
+  partially written block in the object storage. Now, it instead
+  tries to unlink it first and only then abort.
+
+- The block storage has been abstracted into its own structure
+  and set of functions.
+
+gob v0.4
+========
+
+Changes
+-------
+
+- Rename from "sb" to "gob". All binaries now have a "gob-"
+  prefix instead of a "sb-" prefix.
+
+- The block storage now has a version associated with it. This
+  makes sure that gob will not try to write to block stores which
+  have a different version, especially in the case of
+  backwards-incompatible changes.
+
+sb v0.3
+=======
+
+Additions
+---------
+
+- Travis has been set up to build and test changes.
+
+Changes
+-------
+
+- Data that is output by sb-encrypt is using fixed-length blocks
+  now, with the actual data's size being encoded as part of the
+  ciphertext.
+
+- Switch to a secure scheme for generating encryption nonces.
+  Previously, nonces were simply the index of the current block
+  and as such completely deterministic. Nonces are now derived
+  from the hash of the index concatenated with the plain-text
+  data. This generates consistent nonces for the same block while
+  still being unpredictable from the outside without knowing the
+  plain text of the block.
+
+sb v0.2
+=======
+
+Changes
+-------
+
+- Blocks are now allocated dynamically on the heap. Previously,
+  all blocks were allocated on the stack, which could have hit
+  the maximum stack size in case where the user has specified a
+  large block size via config.h.
+
+- The default block size was increased to 4MB. The previous
+  default of 4KB resulted in huge block lists and tons of block
+  files.
+
+sb v0.1
+=======
+
+This is the initial release of the simple backup tool. It
+provides the following tools:
+
+- sb-chunk writes data from standard input into a block store.
+  Chunks are being deduplicated based on the hash of the data
+  that is being written into the block store. The order of blocks
+  written into the blockstore are written to standard output.
+
+- sb-cat will read a list of blobs and successively read each of
+  these blocks from a given block store to standard output.
+
+- sb-encrypt will read data from standard input and write it
+  to standard output, encrypting it with a key.
+
+- sb-decrypt will read data from standard input and write it to
+  standard output, decrypting it with a key.
