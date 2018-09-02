@@ -259,22 +259,31 @@ int store_write(struct hash *out, struct store *store, const unsigned char *data
 {
     struct hash hash;
     int fd, shardfd;
+    char name[sizeof(hash.hex) + 5];
 
     if (hash_compute(&hash, data, datalen) < 0)
         die("Unable to hash block");
 
+    if (snprintf(name, sizeof(name), "%s.tmp", hash.hex + 2) < 0)
+	die("Unable to compute block name");
+
     if ((shardfd = open_shard(store, &hash, 1)) < 0)
         die("Unable to open shard");
 
-    if ((fd = openat(shardfd, hash.hex + 2, O_CREAT|O_EXCL|O_WRONLY, 0644)) < 0) {
+    if ((fd = openat(shardfd, name, O_CREAT|O_EXCL|O_WRONLY, 0644)) < 0) {
         if (errno == EEXIST)
             goto out;
         die_errno("Unable to create block '%s'", hash.hex);
     }
 
     if (write_bytes(fd, data, datalen) < 0 || close(fd) < 0) {
-        unlinkat(shardfd, hash.hex + 2, 0);
+        unlinkat(shardfd, name, 0);
         die_errno("Unable to write block '%s'", hash.hex);
+    }
+
+    if (renameat(shardfd, name, shardfd, hash.hex + 2) < 0) {
+	unlinkat(shardfd, name, 0);
+	die_errno("Unable to move temporary block '%s'", hash.hex);
     }
 
 out:
