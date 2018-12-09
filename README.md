@@ -23,16 +23,10 @@ hashes of the blocks read, which is called an "index". Using this
 list, it becomes trivial to restore the complete data by simply
 concatenating all blocks in the order given by the index.
 
-gob provides optional support for encryption by using the
-encryption and decryption filters. These can be used to first
-encrypt all data previous to it being passed to the chunking
-algorithm.
-
 Quick Start
 -----------
 
-A typical invocation of gob for the non-encrypted use-case might
-look as follows:
+A typical invocation of gob might look as follows:
 
     $ cat /dev/sda1 | gob-chunk /var/backups/blocks >index
 
@@ -48,30 +42,12 @@ This will pipe the index into `gob-cat`, which will read the
 necessary blocks in order from "/var/backups/blocks". The restored
 data is then written to "/dev/sda1"
 
-For optional encryption, you first need to generate a key. This
-is a symmetric key, and as such it is used for encryption and
-decryption. Make sure to never store that key alongside with your
-backups!
-
-    $ gob-keygen keyfile
-    $ cat /dev/sda1 |
-        gob-encrypt keyfile |
-        gob-chunk /var/backups/blocks >index
-
-As you can see, the only difference is adding the `gob-encrypt`
-filter in between to handle encryption of your files. Decryption
-looks similar:
-
-    $ cat index |
-        gob-decrypt keyfile |
-        gob-cat /var/backups/blocks >/dev/sda1
-
 Building
 --------
 
 gob is written in strict C90, so it should just work with your
 regular C compiler. The only dependency required is libsodium,
-which is used for the encryption part. The build process itself
+which is used for hashing the input. The build process itself
 makes use of a simple Makefile and `pkg-config` for locationg
 libsodium. In case these prerequisites are available, the
 following command should suffice to fully build gob:

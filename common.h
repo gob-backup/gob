@@ -25,27 +25,6 @@
 #define BLOCK_STORE_VERSION 1
 #define BLOCK_STORE_VERSION_FILE "version"
 
-#define MASTER_KEY_LEN     (crypto_kdf_KEYBYTES)
-#define ENCRYPTION_KEY_LEN (crypto_aead_chacha20poly1305_KEYBYTES)
-#define NONCE_KEY_LEN      (crypto_generichash_KEYBYTES)
-
-#define NONCE_LEN     (crypto_aead_chacha20poly1305_NPUBBYTES)
-
-#define PLAIN_BLOCK_LEN (BLOCK_LEN - crypto_aead_chacha20poly1305_ABYTES - NONCE_LEN)
-#define PLAIN_META_LEN  (sizeof(uint32_t))
-#define PLAIN_DATA_LEN  (PLAIN_BLOCK_LEN - PLAIN_META_LEN)
-
-#define CIPHER_BLOCK_LEN (BLOCK_LEN)
-#define CIPHER_DATA_LEN  (CIPHER_BLOCK_LEN - NONCE_LEN)
-
-struct nonce_key {
-    unsigned char data[NONCE_KEY_LEN];
-};
-
-struct encrypt_key {
-    unsigned char data[ENCRYPTION_KEY_LEN];
-};
-
 struct hash {
     unsigned char bin[HASH_LEN];
     char hex[HASH_LEN * 2 + 1];
@@ -81,5 +60,3 @@ int store_open(struct store *out, const char *path);
 void store_close(struct store *store);
 int store_write(struct hash *out, struct store *store, const unsigned char *data, size_t datalen);
 int store_read(unsigned char *out, size_t outlen, struct store *store, const struct hash *hash);
-
-int read_keys(struct nonce_key *nout, struct encrypt_key *cout, const char *file);

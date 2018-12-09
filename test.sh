@@ -46,52 +46,6 @@ test_expect_success() {
 	TEST_NUM=$(($TEST_NUM + 1))
 }
 
-test_expect_success 'keygen without keyfile fails' '
-	assert_failure gob-keygen
-'
-
-test_expect_success 'keygen generates key' '
-	assert_success gob-keygen key &&
-	assert_success test -f key
-'
-
-test_expect_success 'keygen avoids overwriting existing key' '
-	assert_failure gob-keygen key
-'
-
-test_expect_success 'generate a deterministic key' '
-	echo -n 8f1cce617550ebb227730bbf5d67a56a0692df2002dd29ea0629604400ebeb77 >key
-'
-
-test_expect_success 'encryption generates fixed blocksize' '
-	assert_success "echo test | gob-encrypt key | wc -c | xargs >actual" &&
-	echo $((4096 * 1024)) >expected &&
-	assert_equal actual expected
-'
-
-test_expect_success 'encryption generates multiples of blocksize' '
-	assert_success "dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key | wc -c | xargs >actual" &&
-	echo $((4096 * 1024 * 2)) >expected &&
-	assert_equal actual expected
-'
-
-test_expect_success 'key generates deterministic sequence' '
-	assert_success "dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key >expected" &&
-	assert_success "dd if=/dev/zero bs=$((4096 * 1025)) count=1 | gob-encrypt key >actual" &&
-	assert_equal actual expected
-'
-
-test_expect_success 'encryption and decryption roundtrips' '
-	assert_success "echo test | gob-encrypt key | gob-decrypt key" >actual &&
-	echo test >expected &&
-	assert_equal actual expected
-'
-
-test_expect_success 'decryption with different key fails' '
-	assert_success gob-keygen other &&
-	assert_failure "echo test | gob-encrypt key | gob-decrypt other"
-'
-
 test_expect_success 'chunking with invalid block store version fails' '
 	assert_success mkdir block-invalid-version &&
 	assert_success "echo 0 >block-invalid-version/version" &&
