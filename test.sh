@@ -16,6 +16,7 @@
 PATH="$(pwd):${PATH}"
 TEST_NUM=0
 TEST_DIR=$(mktemp -d /tmp/gob-tests-XXXXXXXX)
+FAILED=0
 
 assert_equal() {
 	cmp "$1" "$2"
@@ -41,6 +42,7 @@ test_expect_success() {
 		echo "ok $TEST_NUM $1"
 	else
 		echo "failed $TEST_NUM $1"
+		FAILED=$(($FAILED + 1))
 	fi
 
 	TEST_NUM=$(($TEST_NUM + 1))
@@ -151,5 +153,7 @@ test_expect_success 'fsck with corrupted store file fails' '
 '
 
 rm -rf "$TEST_DIR"
+
+test "$FAILED" -eq 0
 
 # vim: noexpandtab
