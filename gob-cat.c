@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
         if (line[linelen - 1] == '\n')
             line[--linelen] = '\0';
 
-        if (hash_from_str(&hash, line, 0) < 0)
+        if (hash_from_str(&hash, line, linelen) < 0)
             die("Invalid index hash '%s'", line);
 
         if ((blocklen = store_read(block, BLOCK_LEN, &store, &hash)) < 0)

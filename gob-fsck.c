@@ -98,7 +98,7 @@ static int scan_shard(int storefd, const char *shard)
 
         if (snprintf(filehash, sizeof(filehash), "%s%s",
                     shard, ent->d_name) != HASH_LEN * 2 ||
-            hash_from_str(&expected_hash, filehash, 0) < 0)
+            hash_from_str(&expected_hash, filehash, sizeof(filehash) - 1) < 0)
         {
             warn("File name is not a valid hash");
             err = -1;

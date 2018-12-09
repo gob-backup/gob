@@ -125,9 +125,6 @@ int hash_from_str(struct hash *out, const char *str, size_t len)
 {
     size_t parsed_len;
 
-    if (!len)
-        len = strlen(str);
-
     if (len != HASH_LEN * 2 || strspn(str, "0123456789abcdef") != len)
         return -1;
     if (sodium_hex2bin(&out->bin[0], sizeof(out->bin), str, len, NULL, &parsed_len, NULL) < 0)
