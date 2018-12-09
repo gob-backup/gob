@@ -267,7 +267,7 @@ int store_write(struct hash *out, struct store *store, const unsigned char *data
         die("Unable to hash block");
 
     if (snprintf(name, sizeof(name), "%s.tmp", hash.hex + 2) < 0)
-	die("Unable to compute block name");
+        die("Unable to compute block name");
 
     if ((shardfd = open_shard(store, &hash, 1)) < 0)
         die("Unable to open shard");
@@ -284,8 +284,8 @@ int store_write(struct hash *out, struct store *store, const unsigned char *data
     }
 
     if (renameat(shardfd, name, shardfd, hash.hex + 2) < 0) {
-	unlinkat(shardfd, name, 0);
-	die_errno("Unable to move temporary block '%s'", hash.hex);
+        unlinkat(shardfd, name, 0);
+        die_errno("Unable to move temporary block '%s'", hash.hex);
     }
 
 out:
@@ -312,34 +312,4 @@ int store_read(unsigned char *out, size_t outlen, struct store *store, const str
     close(fd);
 
     return len;
-}
-
-int read_keys(struct nonce_key *nout, struct encrypt_key *cout, const char *file)
-{
-    unsigned char masterkey[MASTER_KEY_LEN];
-    char masterkey_hex[MASTER_KEY_LEN * 2];
-    size_t parsed_len;
-    ssize_t bytes;
-    int fd;
-
-    if ((fd = open(file, O_RDONLY)) < 0)
-        die_errno("Unable to open keyfile '%s'", file);
-    if ((bytes = read_bytes(fd, (unsigned char *) masterkey_hex, sizeof(masterkey_hex))) < 0)
-        die_errno("Unable to read keyfile '%s'", file);
-    if (bytes != MASTER_KEY_LEN * 2)
-        die("Invalid key length: expected %"PRIuMAX", got %"PRIuMAX, MASTER_KEY_LEN * 2, bytes);
-    if (sodium_hex2bin(masterkey, sizeof(masterkey), masterkey_hex, sizeof(masterkey_hex), NULL, &parsed_len, NULL) < 0)
-        die("Unable to convert key to hex");
-    if (parsed_len != MASTER_KEY_LEN)
-        die("Key not fully parsed");
-
-    if (cout && crypto_kdf_derive_from_key(cout->data, sizeof(cout->data), 1, "gobcrypt", masterkey) < 0)
-        die("Unable do derive encryption key");
-
-    if (nout && crypto_kdf_derive_from_key(nout->data, sizeof(nout->data), 2, "gobnonce", masterkey) < 0)
-        die("Unable do derive nonce key");
-
-    close(fd);
-
-    return 0;
 }
