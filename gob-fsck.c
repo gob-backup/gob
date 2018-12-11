@@ -23,8 +23,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <sodium.h>
-
 #include "config.h"
 #include "common.h"
 

@@ -6,7 +6,7 @@ project(
 )
 
 args = [
-  '-Wall', '-Wextra', '-pedantic',
+  '-Wall', '-Wextra', '-pedantic', '-Wno-long-long',
   '-D_BSD_SOURCE', '-D_POSIX_C_SOURCE=200809L', '-DGOB_VERSION="@0@"'.format(meson.project_version())
 ]
 foreach arg : args
@@ -18,21 +18,21 @@ libsodium = dependency('libsodium')
 executable(
   'gob-cat',
   install: true,
-  sources: [ 'gob-cat.c', 'common.c' ],
+  sources: [ 'gob-cat.c', 'common.c', 'blake2/blake2b-ref.c' ],
   dependencies: libsodium
 )
 
 executable(
   'gob-chunk',
   install: true,
-  sources: [ 'gob-chunk.c', 'common.c' ],
+  sources: [ 'gob-chunk.c', 'common.c', 'blake2/blake2b-ref.c' ],
   dependencies: libsodium
 )
 
 executable(
   'gob-fsck',
   install: true,
-  sources: [ 'gob-fsck.c', 'common.c' ],
+  sources: [ 'gob-fsck.c', 'common.c', 'blake2/blake2b-ref.c' ],
   dependencies: libsodium
 )
 

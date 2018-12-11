@@ -27,8 +27,6 @@
 #include <arpa/inet.h>
 #include <sys/stat.h>
 
-#include <sodium.h>
-
 #include "common.h"
 #include "config.h"
 
@@ -191,14 +189,14 @@ int hash_compute(struct hash *out, const unsigned char *data, size_t len)
 
 int hash_state_init(struct hash_state *state)
 {
-    if (crypto_generichash_init(&state->state, NULL, 0, HASH_LEN) < 0)
+    if (blake2b_init(&state->state, HASH_LEN) < 0)
         return -1;
     return 0;
 }
 
 int hash_state_update(struct hash_state *state, const unsigned char *data, size_t len)
 {
-    if (crypto_generichash_update(&state->state, data, len) < 0)
+    if (blake2b_update(&state->state, data, len) < 0)
         return -1;
     return 0;
 }
@@ -206,7 +204,7 @@ int hash_state_update(struct hash_state *state, const unsigned char *data, size_
 int hash_state_final(struct hash *out, struct hash_state *state)
 {
     unsigned char hash[HASH_LEN];
-    if (crypto_generichash_final(&state->state, hash, sizeof(hash)) < 0)
+    if (blake2b_final(&state->state, hash, sizeof(hash)) < 0)
         return -1;
     return hash_from_bin(out, hash, sizeof(hash));
 }

@@ -25,8 +25,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include <sodium.h>
-
 #include "config.h"
 #include "common.h"
 
