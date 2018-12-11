@@ -111,26 +111,61 @@ int write_bytes(int fd, const unsigned char *buf, size_t buflen)
     return 0;
 }
 
+static char to_hex[] = "0123456789abcdef";
+
 int hash_from_bin(struct hash *out, const unsigned char *data, size_t len)
 {
+    size_t i;
+    char *p;
+
     if (len != HASH_LEN)
         return -1;
+
     memcpy(&out->bin[0], data, len);
-    memset(&out->hex[0], 0, sizeof(out->hex));
-    sodium_bin2hex(&out->hex[0], sizeof(out->hex), data, len);
+
+    for (p = &out->hex[0], i = 0; i < HASH_LEN; i++) {
+        *p++ = to_hex[((unsigned int) out->bin[i]) >> 4];
+        *p++ = to_hex[((unsigned int) out->bin[i]) & 0xf];
+    }
+    *p = '\0';
+
     return 0;
 }
 
+static signed char from_hex[] = {
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 00 */
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 10 */
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 20 */
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -1, -1, -1, -1, -1, -1, /* 30 */
+    -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 40 */
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 50 */
+    -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 60 */
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 70 */
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 80 */
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 90 */
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* a0 */
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* b0 */
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* c0 */
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* d0 */
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* e0 */
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* f0 */
+};
+
 int hash_from_str(struct hash *out, const char *str, size_t len)
 {
-    size_t parsed_len;
+    size_t i;
 
-    if (len != HASH_LEN * 2 || strspn(str, "0123456789abcdef") != len)
+    if (len != HASH_LEN * 2)
         return -1;
-    if (sodium_hex2bin(&out->bin[0], sizeof(out->bin), str, len, NULL, &parsed_len, NULL) < 0)
-        return -1;
-    if (parsed_len != sizeof(out->bin))
-        return -1;
+
+    memset(out, 0, sizeof(*out));
+
+    for (i = 0; i < len; i++) {
+        signed char c = from_hex[(unsigned char) str[i]];
+        if (c < 0)
+            return -1;
+        out->bin[i / 2] |= (unsigned char)(c << (i % 2 ? 0 : 4));
+    }
 
     memset(&out->hex[0], 0, sizeof(out->hex));
     strncpy(&out->hex[0], str, len);
