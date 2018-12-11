@@ -10,13 +10,18 @@ addons:
     packages:
      - libsodium23
      - libsodium-dev
+     - python3-pip
   coverity_scan:
     project:
       name: gob-backup/gob
       description: Block-based deduplicating backups
     notification_email: gob@pks.im
-    build_command: make
+    build_command: meson build && cd build && ninja
     branch_pattern: coverity_scan
+
+env:
+    global:
+        - PATH="${HOME}/bin:${PATH}"
 
 matrix:
  fast_finish: true
@@ -36,12 +41,32 @@ matrix:
      if: branch != coverity_scan
 
 install:
-  - if test ${TRAVIS_OS_NAME} = "osx"; then brew install libsodium; fi
+  - [
+        if test ${TRAVIS_OS_NAME} = "osx"
+        then
+            brew install libsodium meson
+            wget https://github.com/ninja-build/ninja/releases/download/v1.6.0/ninja-mac.zip
+            unzip ninja-mac.zip
+            mkdir "${HOME}"/bin
+            mv ninja "${HOME}"/bin
+        fi
+    ]
+  - [
+        if test ${TRAVIS_OS_NAME} = "linux"
+        then
+            pip3 install meson<0.45.0
+            wget https://github.com/ninja-build/ninja/releases/download/v1.6.0/ninja-linux.zip
+            unzip ninja-linux.zip
+            mkdir "${HOME}"/bin
+            mv ninja "${HOME}"/bin
+        fi
+    ]
 
 script:
-  - make
-  - make test
-  - PREFIX="${HOME}/dest" make install
+  - meson build
+  - cd build
+  - ninja test
+  - PREFIX="${HOME}/dest" ninja install
 
 branches:
  only:
