@@ -33,15 +33,24 @@ assert_failure() {
 
 test_expect_success() {
 	(
-		cd "$TEST_DIR"
-		eval "$2"
-	) >/dev/null 2>&1
+		cd "$TEST_DIR" || exit -1
 
-	if test $? -eq 0
+		OUTPUT="$(eval "$2" 2>&1)"
+		STATUS="$?"
+
+		if test $STATUS -eq 0
+		then
+			echo "ok $TEST_NUM $1"
+		else
+			echo "failed $TEST_NUM $1"
+			test -n "$OUTPUT" && echo "$OUTPUT" | sed 's/^/  > /' >&2
+		fi
+
+		exit "$STATUS"
+	)
+
+	if test "$?" -ne 0
 	then
-		echo "ok $TEST_NUM $1"
-	else
-		echo "failed $TEST_NUM $1"
 		FAILED=$(($FAILED + 1))
 	fi
 
