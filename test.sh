@@ -79,7 +79,7 @@ test_expect_success 'chunking with block directory succeeds' '
 '
 
 test_expect_success 'multiple equal chunks generate same hash' '
-	assert_success dd if=/dev/zero bs=4M count=2 | gob-chunk blocks >actual &&
+	assert_success dd if=/dev/zero bs=4194304 count=2 | gob-chunk blocks >actual &&
 	assert_success test -e blocks/a1/45668a0b23bf1551f17838cf35e30e &&
 	cat >expected <<-EOF &&
 		a145668a0b23bf1551f17838cf35e30e
@@ -96,7 +96,7 @@ test_expect_success 'chunk and cat roundtrip' '
 '
 
 test_expect_success 'cat with multiple blocks succeeds' '
-	assert_success "dd if=/dev/zero bs=5M count=1 >expected" &&
+	assert_success "dd if=/dev/zero bs=5242880 count=1 >expected" &&
 	assert_success "cat expected | gob-chunk blocks | gob-cat blocks >actual" &&
 	assert_equal actual expected
 '
