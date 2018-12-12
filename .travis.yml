@@ -4,12 +4,7 @@ sudo: false
 
 addons:
   apt:
-    sources:
-     - sourceline: 'deb https://dl.bintray.com/gob-backup/travis-deps trusty main'
-       key_url: 'https://bintray.com/user/downloadSubjectPublicKey?username=bintray'
     packages:
-     - libsodium23
-     - libsodium-dev
      - python3-pip
   coverity_scan:
     project:
@@ -40,7 +35,7 @@ install:
   - |
     if test ${TRAVIS_OS_NAME} = "osx"
     then
-        brew install libsodium meson
+        brew install meson
         wget https://github.com/ninja-build/ninja/releases/download/v1.6.0/ninja-mac.zip
         unzip ninja-mac.zip
         mv ninja "${HOME}"/bin

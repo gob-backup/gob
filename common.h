@@ -18,7 +18,7 @@
 #include <stddef.h>
 #include <sys/types.h>
 
-#include <sodium.h>
+#include "blake2/blake2.h"
 
 #include "config.h"
 
@@ -31,7 +31,7 @@ struct hash {
 };
 
 struct hash_state {
-    crypto_generichash_state state;
+    blake2b_state state;
 };
 
 struct store {
