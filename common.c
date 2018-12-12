@@ -83,6 +83,8 @@ ssize_t read_bytes(int fd, unsigned char *buf, size_t buflen)
 
     while (total != buflen) {
         ssize_t bytes = read(fd, buf + total, buflen - total);
+        if (bytes < 0 && (errno == EAGAIN || errno == EINTR))
+            continue;
         if (bytes < 0)
             return -1;
         if (bytes == 0)
@@ -99,6 +101,8 @@ int write_bytes(int fd, const unsigned char *buf, size_t buflen)
 
     while (total != buflen) {
         ssize_t bytes = write(fd, buf + total, buflen - total);
+        if (bytes < 0 && (errno == EAGAIN || errno == EINTR))
+            continue;
         if (bytes <= 0)
             return -1;
         total += bytes;
