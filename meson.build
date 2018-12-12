@@ -13,27 +13,22 @@ foreach arg : args
   add_project_arguments(arg, language: 'c')
 endforeach
 
-libsodium = dependency('libsodium')
-
 executable(
   'gob-cat',
   install: true,
-  sources: [ 'gob-cat.c', 'common.c', 'blake2/blake2b-ref.c' ],
-  dependencies: libsodium
+  sources: [ 'gob-cat.c', 'common.c', 'blake2/blake2b-ref.c' ]
 )
 
 executable(
   'gob-chunk',
   install: true,
-  sources: [ 'gob-chunk.c', 'common.c', 'blake2/blake2b-ref.c' ],
-  dependencies: libsodium
+  sources: [ 'gob-chunk.c', 'common.c', 'blake2/blake2b-ref.c' ]
 )
 
 executable(
   'gob-fsck',
   install: true,
-  sources: [ 'gob-fsck.c', 'common.c', 'blake2/blake2b-ref.c' ],
-  dependencies: libsodium
+  sources: [ 'gob-fsck.c', 'common.c', 'blake2/blake2b-ref.c' ]
 )
 
 tests = find_program('test.sh')

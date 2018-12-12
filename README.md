@@ -46,10 +46,8 @@ Building
 --------
 
 gob is written in strict C90, so it should just work with your
-regular C compiler. The only dependency required is libsodium,
-which is used for hashing the input. The build process itself
-makes use of meson and `pkg-config` for locationg libsodium. In
-case these prerequisites are available, the following command
+regular C compiler. The build process itself makes use of meson.
+In case these prerequisites are available, the following commands
 should suffice to fully build gob:
 
     meson build
