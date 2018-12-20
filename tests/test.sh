@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-PATH="$(pwd):${PATH}"
+PATH="$(pwd)/src:${PATH}"
 TEST_NUM=0
 TEST_DIR=$(mktemp -d /tmp/gob-tests-XXXXXXXX)
 FAILED=0
