@@ -6,6 +6,4 @@ project(
 )
 
 subdir('src')
-
-tests = find_program('test.sh')
-test('gob', tests)
+subdir('tests')
