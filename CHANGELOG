@@ -1,3 +1,19 @@
+gob v0.7
+========
+
+- The build system has been migrated from Makefiles to Meson.
+
+- Top-level source files and manpages have been moved into a new
+  "src/" and "docs/" subdirectory, respectively.
+
+- Support for encryption has been completely removed. Its
+  security cannot be guaranteed and better solutions exist by
+  e.g. writing the backup store into a LUKS volume.
+
+- The hex conversion and blake2b hash functions have been
+  included into our sources. This allowed removing the dependency
+  on libsodium altogether.
+
 gob v0.6
 ========
 
