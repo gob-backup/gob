@@ -19,6 +19,9 @@
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdio.h>
+#ifdef HAVE_FPENDING
+# include <stdio_ext.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -73,6 +76,25 @@ void version(const char *executable)
            "block size: %d\n"
            "hash size:  %d\n", executable, BLOCK_LEN, HASH_LEN);
     exit(0);
+}
+
+void close_stdout(void)
+{
+#ifdef HAVE_FPENDING
+    char some_pending = (__fpending(stdout) != 0);
+#else
+    char some_pending = 0;
+#endif
+    char prev_fail = (ferror(stdout) != 0);
+    char fclose_fail = (fclose(stdout) != 0);
+
+    if (prev_fail || (fclose_fail && (some_pending || errno != EBADF))) {
+        if (!fclose_fail)
+            fprintf(stderr, "Error closing stdout: %s\n", strerror(errno));
+        else
+            fprintf(stderr, "Error closing stdout\n");
+        _exit(1);
+    }
 }
 
 ssize_t read_bytes(int fd, unsigned char *buf, size_t buflen)

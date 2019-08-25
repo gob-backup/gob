@@ -44,6 +44,8 @@ void die_errno(const char *fmt, ...);
 void warn(const char *fmt, ...);
 void version(const char *executable);
 
+void close_stdout(void);
+
 ssize_t read_bytes(int fd, unsigned char *buf, size_t buflen);
 int write_bytes(int fd, const unsigned char *buf, size_t buflen);
 
