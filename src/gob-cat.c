@@ -64,6 +64,8 @@ int main(int argc, char *argv[])
     if (argc != 2)
         die("USAGE: %s ( --version | <DIR> )", argv[0]);
 
+    atexit(close_stdout);
+
     if (!strcmp(argv[1], "--version"))
         version("gob-cat");
 
