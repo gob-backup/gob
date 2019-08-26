@@ -32,6 +32,19 @@ assert_failure() {
 }
 
 test_expect_success() {
+	TEST_NUM=$(($TEST_NUM + 1))
+
+	if test $# -eq 3
+	then
+		if ! eval "$1"
+		then
+			echo "ok $TEST_NUM # SKIP $2"
+			return
+		fi
+
+		shift
+	fi
+
 	(
 		cd "$TEST_DIR" || exit -1
 
@@ -53,8 +66,6 @@ test_expect_success() {
 	then
 		FAILED=$(($FAILED + 1))
 	fi
-
-	TEST_NUM=$(($TEST_NUM + 1))
 }
 
 test_expect_success 'chunking with invalid block store version fails' '
@@ -66,6 +77,12 @@ test_expect_success 'chunking with invalid block store version fails' '
 
 test_expect_success 'chunking without block directory fails' '
 	assert_failure gob-chunk
+'
+
+test_expect_success 'test -w /dev/full' 'chunking with invalid stdout fails' '
+	assert_success mkdir store &&
+	assert_success echo test >input &&
+	assert_failure gob-chunk store <input >/dev/full
 '
 
 test_expect_success 'chunking with block directory succeeds' '
@@ -177,6 +194,8 @@ test_expect_success 'fsck with corrupted store file fails' '
 	assert_success echo "foobar" > fsck/21/ebd7636fdde0f4929e0ed3c0beaf55 &&
 	assert_failure gob-fsck fsck
 '
+
+echo "1..$TEST_NUM"
 
 rm -rf "$TEST_DIR"
 
