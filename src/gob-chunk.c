@@ -46,8 +46,6 @@ int main(int argc, char *argv[])
         die("Unable to initialize hashing state");
 
     while ((bytes = read_bytes(STDIN_FILENO, block, BLOCK_LEN)) > 0) {
-        struct hash hash;
-
         total += (size_t) bytes;
 
         if (hash_state_update(&state, block, (size_t) bytes) < 0)
