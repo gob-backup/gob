@@ -4,7 +4,6 @@ args = [
     '-Wno-long-long',
     '-Wno-padded',
     '-Wno-disabled-macro-expansion',
-    '-D_BSD_SOURCE',
     '-D_POSIX_C_SOURCE=200809L',
 ]
 
