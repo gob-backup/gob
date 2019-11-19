@@ -15,23 +15,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "common.h"
+
 #include <errno.h>
-#include <inttypes.h>
+#include <fcntl.h>
 #include <stdarg.h>
-#include <stdio.h>
 #ifdef HAVE_FPENDING
 # include <stdio_ext.h>
 #endif
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
-#include <fcntl.h>
-
 #include <arpa/inet.h>
 #include <sys/stat.h>
-
-#include "common.h"
-#include "config.h"
 
 void die(const char *fmt, ...)
 {

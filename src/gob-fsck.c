@@ -15,17 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <sys/stat.h>
+#include "common.h"
 
 #include <dirent.h>
 #include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
-
-#include "config.h"
-#include "common.h"
+#include <sys/stat.h>
 
 #define HEXCHARS "0123456789abcdef"
 
