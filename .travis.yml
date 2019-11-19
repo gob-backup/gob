@@ -22,6 +22,14 @@ matrix:
      dist: xenial
      compiler: clang
      if: branch != coverity_scan
+   - os: linux
+     dist: bionic
+     compiler: gcc
+     if: branch != coverity_scan
+   - os: linux
+     dist: bionic
+     compiler: clang
+     if: branch != coverity_scan
    - os: osx
      compiler: gcc
      if: branch != coverity_scan
