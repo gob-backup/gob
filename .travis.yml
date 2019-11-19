@@ -1,7 +1,5 @@
 language: c
 
-sudo: false
-
 addons:
   apt:
     packages:
@@ -18,10 +16,10 @@ matrix:
  fast_finish: true
  include:
    - os: linux
-     dist: trusty
+     dist: xenial
      compiler: gcc
    - os: linux
-     dist: trusty
+     dist: xenial
      compiler: clang
      if: branch != coverity_scan
    - os: osx
