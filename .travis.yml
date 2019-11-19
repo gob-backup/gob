@@ -1,11 +1,16 @@
 language: c
 
-sudo: false
-
 addons:
   apt:
     packages:
-     - python3-pip
+     - meson
+     - ninja-build
+    update: true
+  homebrew:
+    packages:
+     - meson
+     - ninja
+    update: true
   coverity_scan:
     project:
       name: gob-backup/gob
@@ -18,10 +23,18 @@ matrix:
  fast_finish: true
  include:
    - os: linux
-     dist: trusty
+     dist: xenial
      compiler: gcc
    - os: linux
-     dist: trusty
+     dist: xenial
+     compiler: clang
+     if: branch != coverity_scan
+   - os: linux
+     dist: bionic
+     compiler: gcc
+     if: branch != coverity_scan
+   - os: linux
+     dist: bionic
      compiler: clang
      if: branch != coverity_scan
    - os: osx
@@ -31,28 +44,10 @@ matrix:
      compiler: clang
      if: branch != coverity_scan
 
-install:
-  - |
-    if test ${TRAVIS_OS_NAME} = "osx"
-    then
-        brew install meson
-        wget https://github.com/ninja-build/ninja/releases/download/v1.6.0/ninja-mac.zip
-        unzip ninja-mac.zip
-        mv ninja "${HOME}"/bin
-    fi
-
-    if test ${TRAVIS_OS_NAME} = "linux"
-    then
-        pip3 install --user 'meson<0.45.0'
-        wget https://github.com/ninja-build/ninja/releases/download/v1.6.0/ninja-linux.zip
-        unzip ninja-linux.zip
-        mv ninja "${HOME}"/bin
-    fi
-
 script:
-  - meson build --prefix="${HOME}/dest"
-  - ninja -C build test
-  - ninja -C build install
+  - mkdir build
+  - meson build . --prefix="${HOME}/dest"
+  - ninja -C build test install
 
 branches:
  only:
