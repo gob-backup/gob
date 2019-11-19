@@ -38,7 +38,7 @@ static int parse_trailer(struct hash *hash_out, size_t *datalen_out, const char 
         die("No separator between trailer hash and length");
     trailer++;
 
-    if ((*datalen_out = strtol(trailer, NULL, 10)) == 0)
+    if ((*datalen_out = strtoul(trailer, NULL, 10)) == 0)
         die("Invalid data length in trailer");
 
     return 0;
@@ -78,19 +78,19 @@ int main(int argc, char *argv[])
         if (line[linelen - 1] == '\n')
             line[--linelen] = '\0';
 
-        if (hash_from_str(&hash, line, linelen) < 0)
+        if (hash_from_str(&hash, line, (size_t) linelen) < 0)
             die("Invalid index hash '%s'", line);
 
         if ((blocklen = store_read(block, BLOCK_LEN, &store, &hash)) < 0)
             die_errno("Unable to open block '%s'", line);
 
-        if (hash_state_update(&state, block, blocklen) < 0)
+        if (hash_state_update(&state, block, (size_t) blocklen) < 0)
             die("Unable to update hash");
 
-        if (write_bytes(STDOUT_FILENO, block, blocklen) < 0)
+        if (write_bytes(STDOUT_FILENO, block, (size_t) blocklen) < 0)
             die_errno("Unable to write block '%s'", line);
 
-        total += blocklen;
+        total += (size_t) blocklen;
     }
 
     if (linelen < 0 && !feof(stdin))

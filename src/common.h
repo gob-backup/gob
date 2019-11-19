@@ -43,10 +43,10 @@ struct store {
     int shardfds[256];
 };
 
-void die(const char *fmt, ...);
-void die_errno(const char *fmt, ...);
-void warn(const char *fmt, ...);
-void version(const char *executable);
+void die(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
+void die_errno(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
+void warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void version(const char *executable) __attribute__((noreturn));
 
 void close_stdout(void);
 
@@ -65,4 +65,4 @@ int hash_state_final(struct hash *out, struct hash_state *state);
 int store_open(struct store *out, const char *path);
 void store_close(struct store *store);
 int store_write(struct hash *out, struct store *store, const unsigned char *data, size_t datalen);
-int store_read(unsigned char *out, size_t outlen, struct store *store, const struct hash *hash);
+ssize_t store_read(unsigned char *out, size_t outlen, struct store *store, const struct hash *hash);

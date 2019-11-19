@@ -59,8 +59,6 @@ void warn(const char *fmt, ...)
     vfprintf(stderr, fmt, ap);
     va_end(ap);
     putc('\n', stderr);
-
-    exit(1);
 }
 
 void version(const char *executable)
@@ -103,10 +101,10 @@ ssize_t read_bytes(int fd, unsigned char *buf, size_t buflen)
             return -1;
         if (bytes == 0)
             break;
-        total += bytes;
+        total += (size_t) bytes;
     }
 
-    return total;
+    return (ssize_t) total;
 }
 
 int write_bytes(int fd, const unsigned char *buf, size_t buflen)
@@ -119,7 +117,7 @@ int write_bytes(int fd, const unsigned char *buf, size_t buflen)
             continue;
         if (bytes <= 0)
             return -1;
-        total += bytes;
+        total += (size_t) bytes;
     }
 
     return 0;
@@ -130,14 +128,14 @@ static char to_hex[] = "0123456789abcdef";
 int hash_from_bin(struct hash *out, const unsigned char *data, size_t len)
 {
     size_t i;
-    char *p;
+    char *p = &out->hex[0];
 
     if (len != HASH_LEN)
         return -1;
 
     memcpy(&out->bin[0], data, len);
 
-    for (p = &out->hex[0], i = 0; i < HASH_LEN; i++) {
+    for (i = 0; i < HASH_LEN; i++) {
         *p++ = to_hex[((unsigned int) out->bin[i]) >> 4];
         *p++ = to_hex[((unsigned int) out->bin[i]) & 0xf];
     }
@@ -345,7 +343,7 @@ out:
     return 0;
 }
 
-int store_read(unsigned char *out, size_t outlen, struct store *store, const struct hash *hash)
+ssize_t store_read(unsigned char *out, size_t outlen, struct store *store, const struct hash *hash)
 {
     int fd, shardfd;
     ssize_t len;

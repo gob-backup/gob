@@ -46,7 +46,7 @@ matrix:
 
 script:
   - mkdir build
-  - meson build . --prefix="${HOME}/dest"
+  - meson build . --prefix="${HOME}/dest" --warnlevel 3 --werror
   - ninja -C build test install
 
 branches:

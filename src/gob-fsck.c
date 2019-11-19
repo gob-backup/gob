@@ -47,8 +47,9 @@ static int scan_shard(int storefd, const char *shard)
     }
 
     while ((ent = readdir(sharddir)) != NULL) {
-        int bytes, blockfd = -1;
         struct stat stat;
+        int blockfd = -1;
+        ssize_t bytes;
 
         if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
             continue;
@@ -67,7 +68,7 @@ static int scan_shard(int storefd, const char *shard)
 
         if (strlen(ent->d_name) != (HASH_LEN * 2 - 2) ||
                 strspn(ent->d_name, HEXCHARS) != (HASH_LEN * 2 - 2)) {
-            warn("invalid entry name '%s/%s' %lu %lu", shard, ent->d_name, strspn(ent->d_name, HEXCHARS), HASH_LEN * 2 - 2);
+            warn("invalid entry name '%s/%s' %lu %d", shard, ent->d_name, strspn(ent->d_name, HEXCHARS), HASH_LEN * 2 - 2);
             err = -1;
             goto next;
         }
@@ -84,7 +85,7 @@ static int scan_shard(int storefd, const char *shard)
             goto next;
         }
 
-        if (hash_compute(&computed_hash, block, bytes) < 0) {
+        if (hash_compute(&computed_hash, block, (size_t) bytes) < 0) {
             warn("Unable to hash block");
             err = -1;
             goto next;
@@ -156,7 +157,7 @@ int main(int argc, char *argv[])
         }
 
         if (!S_ISDIR(stat.st_mode)) {
-            warn("invalid entry '%s/%s'", argv[1], ent->d_name);
+            warn("invalid shard '%s/%s'", argv[1], ent->d_name);
             err = -1;
             continue;
         }

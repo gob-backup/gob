@@ -2,7 +2,8 @@ cc = meson.get_compiler('c')
 
 args = [
     '-Wno-long-long',
-    '-D_BSD_SOURCE',
+    '-Wno-padded',
+    '-Wno-disabled-macro-expansion',
     '-D_POSIX_C_SOURCE=200809L',
 ]
 
