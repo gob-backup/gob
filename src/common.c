@@ -59,8 +59,6 @@ void warn(const char *fmt, ...)
     vfprintf(stderr, fmt, ap);
     va_end(ap);
     putc('\n', stderr);
-
-    exit(1);
 }
 
 void version(const char *executable)

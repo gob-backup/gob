@@ -28,7 +28,7 @@ assert_success() {
 
 assert_failure() {
 	eval "$@"
-	test $? -eq 1
+	test $? -ne 0
 }
 
 test_expect_success() {
@@ -174,7 +174,7 @@ test_expect_success 'fsck with valid block store succeeds' '
 	assert_success gob-fsck fsck
 '
 
-test_expect_success 'fsck with invalid store file fails' '
+test_expect_success 'fsck with invalid shard fails' '
 	assert_success gob-fsck fsck &&
 	assert_success touch fsck/bogus &&
 	assert_failure gob-fsck fsck &&

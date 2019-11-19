@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
         }
 
         if (!S_ISDIR(stat.st_mode)) {
-            warn("invalid entry '%s/%s'", argv[1], ent->d_name);
+            warn("invalid shard '%s/%s'", argv[1], ent->d_name);
             err = -1;
             continue;
         }
