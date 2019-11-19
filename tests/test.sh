@@ -70,9 +70,9 @@ test_expect_success() {
 
 test_expect_success 'chunking with invalid block store version fails' '
 	assert_success mkdir block-invalid-version &&
-	assert_success "echo 0 >block-invalid-version/version" &&
-	assert_success "echo foobar >input" &&
-	assert_failure "gob-chunk block-invalid-version <input"
+	assert_success echo 0 >block-invalid-version/version &&
+	assert_success echo foobar >input &&
+	assert_failure gob-chunk block-invalid-version <input
 '
 
 test_expect_success 'chunking without block directory fails' '
@@ -118,45 +118,45 @@ test_expect_success 'chunk and cat roundtrip' '
 '
 
 test_expect_success 'cat with multiple blocks succeeds' '
-	assert_success "dd if=/dev/zero bs=5242880 count=1 >expected" &&
-	assert_success "gob-chunk blocks <expected >index" &&
-	assert_success "gob-cat blocks <index >actual" &&
+	assert_success dd if=/dev/zero bs=5242880 count=1 >expected &&
+	assert_success gob-chunk blocks <expected >index &&
+	assert_success gob-cat blocks <index >actual &&
 	assert_equal actual expected
 '
 
 test_expect_success 'cat with only trailer fails' '
-	assert_success "echo foobar >input" &&
-	assert_success "gob-chunk blocks <input >index" &&
-	assert_success "head -n1 <index >truncated" &&
-	assert_failure "gob-cat blocks <truncated"
+	assert_success echo foobar >input &&
+	assert_success gob-chunk blocks <input >index &&
+	assert_success head -n1 <index >truncated &&
+	assert_failure gob-cat blocks <truncated
 '
 
 test_expect_success 'cat with too short trailer length fails' '
-	assert_success "echo foobar >input" &&
-	assert_success "gob-chunk blocks <input >index" &&
-	assert_success "sed s/7$/4/ <index >invalid" &&
-	assert_failure "gob-cat blocks <invalid"
+	assert_success echo foobar >input &&
+	assert_success gob-chunk blocks <input >index &&
+	assert_success sed s/7$/4/ <index >invalid &&
+	assert_failure gob-cat blocks <invalid
 '
 
 test_expect_success 'cat with too long trailer length fails' '
-	assert_success "echo foobar >input" &&
-	assert_success "gob-chunk blocks <input >index" &&
-	assert_success "sed s/7$/20/ <index >invalid" &&
-	assert_failure "gob-cat blocks <invalid"
+	assert_success echo foobar >input &&
+	assert_success gob-chunk blocks <input >index &&
+	assert_success sed s/7$/20/ <index >invalid &&
+	assert_failure gob-cat blocks <invalid
 '
 
 test_expect_success 'cat with invalid trailer hash fails' '
-	assert_success "echo foobar >input" &&
-	assert_success "gob-chunk blocks <input >index" &&
-	assert_success "sed \"s/>..../>0000/\" <index >invalid" &&
-	assert_failure "gob-cat blocks <invalid"
+	assert_success echo foobar >input &&
+	assert_success gob-chunk blocks <input >index &&
+	assert_success sed s|>....|>0000| <index >invalid &&
+	assert_failure gob-cat blocks <invalid
 '
 
 test_expect_success 'cat with missing trailer fails' '
-	assert_success "echo foobar >input" &&
-	assert_success "gob-chunk blocks <input >index" &&
-	assert_success "head -n1 <index >truncated" &&
-	assert_failure "gob-cat blocks <truncated"
+	assert_success echo foobar >input &&
+	assert_success gob-chunk blocks <input >index &&
+	assert_success head -n1 <index >truncated &&
+	assert_failure gob-cat blocks <truncated
 '
 
 test_expect_success 'cat with non-existing blocks fails' '
@@ -164,13 +164,13 @@ test_expect_success 'cat with non-existing blocks fails' '
 		00000000000000000000000000000000
 		>00000000000000000000000000000000 7
 	EOF
-	assert_failure "gob-cat blocks <index"
+	assert_failure gob-cat blocks <index
 '
 
 test_expect_success 'fsck with valid block store succeeds' '
 	assert_success mkdir fsck &&
-	assert_success "echo test >input" &&
-	assert_success "gob-chunk fsck <input" &&
+	assert_success echo test >input &&
+	assert_success gob-chunk fsck <input &&
 	assert_success gob-fsck fsck
 '
 
@@ -191,7 +191,7 @@ test_expect_success 'fsck with invalid store file fails' '
 
 test_expect_success 'fsck with corrupted store file fails' '
 	assert_success gob-fsck fsck &&
-	assert_success echo "foobar" > fsck/21/ebd7636fdde0f4929e0ed3c0beaf55 &&
+	assert_success echo foobar > fsck/21/ebd7636fdde0f4929e0ed3c0beaf55 &&
 	assert_failure gob-fsck fsck
 '
 
