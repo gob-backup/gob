@@ -101,10 +101,10 @@ ssize_t read_bytes(int fd, unsigned char *buf, size_t buflen)
             return -1;
         if (bytes == 0)
             break;
-        total += bytes;
+        total += (size_t) bytes;
     }
 
-    return total;
+    return (ssize_t) total;
 }
 
 int write_bytes(int fd, const unsigned char *buf, size_t buflen)
@@ -117,7 +117,7 @@ int write_bytes(int fd, const unsigned char *buf, size_t buflen)
             continue;
         if (bytes <= 0)
             return -1;
-        total += bytes;
+        total += (size_t) bytes;
     }
 
     return 0;

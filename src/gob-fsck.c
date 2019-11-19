@@ -47,8 +47,9 @@ static int scan_shard(int storefd, const char *shard)
     }
 
     while ((ent = readdir(sharddir)) != NULL) {
-        int bytes, blockfd = -1;
         struct stat stat;
+        int blockfd = -1;
+        ssize_t bytes;
 
         if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
             continue;
@@ -84,7 +85,7 @@ static int scan_shard(int storefd, const char *shard)
             goto next;
         }
 
-        if (hash_compute(&computed_hash, block, bytes) < 0) {
+        if (hash_compute(&computed_hash, block, (size_t) bytes) < 0) {
             warn("Unable to hash block");
             err = -1;
             goto next;
