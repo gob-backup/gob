@@ -128,14 +128,14 @@ static char to_hex[] = "0123456789abcdef";
 int hash_from_bin(struct hash *out, const unsigned char *data, size_t len)
 {
     size_t i;
-    char *p;
+    char *p = &out->hex[0];
 
     if (len != HASH_LEN)
         return -1;
 
     memcpy(&out->bin[0], data, len);
 
-    for (p = &out->hex[0], i = 0; i < HASH_LEN; i++) {
+    for (i = 0; i < HASH_LEN; i++) {
         *p++ = to_hex[((unsigned int) out->bin[i]) >> 4];
         *p++ = to_hex[((unsigned int) out->bin[i]) & 0xf];
     }
