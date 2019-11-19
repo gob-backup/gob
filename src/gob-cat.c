@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "common.h"
+
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -24,9 +26,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-
-#include "config.h"
-#include "common.h"
 
 static int parse_trailer(struct hash *hash_out, size_t *datalen_out, const char *trailer)
 {

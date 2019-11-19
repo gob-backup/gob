@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "common.h"
+
 #include <errno.h>
 #include <inttypes.h>
 #include <stdarg.h>
@@ -29,9 +31,6 @@
 
 #include <arpa/inet.h>
 #include <sys/stat.h>
-
-#include "common.h"
-#include "config.h"
 
 void die(const char *fmt, ...)
 {

@@ -15,12 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "config.h"
+
 #include <stddef.h>
 #include <sys/types.h>
 
 #include "blake2/blake2.h"
-
-#include "config.h"
 
 #define BLOCK_STORE_VERSION 1
 #define BLOCK_STORE_VERSION_FILE "version"

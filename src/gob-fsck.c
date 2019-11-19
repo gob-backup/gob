@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "common.h"
+
 #include <sys/stat.h>
 
 #include <dirent.h>
@@ -23,9 +25,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#include "config.h"
-#include "common.h"
 
 #define HEXCHARS "0123456789abcdef"
 

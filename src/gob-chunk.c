@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "common.h"
+
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -26,9 +28,6 @@
 #include <fcntl.h>
 
 #include <arpa/inet.h>
-
-#include "config.h"
-#include "common.h"
 
 int main(int argc, char *argv[])
 {
