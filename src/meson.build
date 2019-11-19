@@ -1,8 +1,9 @@
 cc = meson.get_compiler('c')
 
 args = [
-  '-Wall', '-Wextra', '-pedantic', '-Wno-long-long',
-  '-D_BSD_SOURCE', '-D_POSIX_C_SOURCE=200809L',
+    '-Wno-long-long',
+    '-D_BSD_SOURCE',
+    '-D_POSIX_C_SOURCE=200809L',
 ]
 
 config_data = configuration_data()
