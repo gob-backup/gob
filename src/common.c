@@ -343,7 +343,7 @@ out:
     return 0;
 }
 
-int store_read(unsigned char *out, size_t outlen, struct store *store, const struct hash *hash)
+ssize_t store_read(unsigned char *out, size_t outlen, struct store *store, const struct hash *hash)
 {
     int fd, shardfd;
     ssize_t len;

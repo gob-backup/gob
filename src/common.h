@@ -65,4 +65,4 @@ int hash_state_final(struct hash *out, struct hash_state *state);
 int store_open(struct store *out, const char *path);
 void store_close(struct store *store);
 int store_write(struct hash *out, struct store *store, const unsigned char *data, size_t datalen);
-int store_read(unsigned char *out, size_t outlen, struct store *store, const struct hash *hash);
+ssize_t store_read(unsigned char *out, size_t outlen, struct store *store, const struct hash *hash);
