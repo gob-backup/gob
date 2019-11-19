@@ -45,9 +45,9 @@ matrix:
      if: branch != coverity_scan
 
 script:
-  - meson build --prefix="${HOME}/dest"
-  - ninja -C build test
-  - ninja -C build install
+  - mkdir build
+  - meson build . --prefix="${HOME}/dest"
+  - ninja -C build test install
 
 branches:
  only:
