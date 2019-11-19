@@ -67,7 +67,7 @@ static int scan_shard(int storefd, const char *shard)
 
         if (strlen(ent->d_name) != (HASH_LEN * 2 - 2) ||
                 strspn(ent->d_name, HEXCHARS) != (HASH_LEN * 2 - 2)) {
-            warn("invalid entry name '%s/%s' %lu %lu", shard, ent->d_name, strspn(ent->d_name, HEXCHARS), HASH_LEN * 2 - 2);
+            warn("invalid entry name '%s/%s' %lu %d", shard, ent->d_name, strspn(ent->d_name, HEXCHARS), HASH_LEN * 2 - 2);
             err = -1;
             goto next;
         }

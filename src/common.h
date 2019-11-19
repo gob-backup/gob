@@ -43,10 +43,10 @@ struct store {
     int shardfds[256];
 };
 
-void die(const char *fmt, ...);
-void die_errno(const char *fmt, ...);
-void warn(const char *fmt, ...);
-void version(const char *executable);
+void die(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
+void die_errno(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
+void warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void version(const char *executable) __attribute__((noreturn));
 
 void close_stdout(void);
 
