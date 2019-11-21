@@ -1,3 +1,26 @@
+gob v0.8
+========
+
+Changes
+-------
+
+- Standard output is now being checked for errors when exiting to
+  verify that e.g. the index has been completely written.
+
+- Continuous integration has been updated from Trusty to Xenial.
+  Another build job for Bionic has been added.
+
+- A lot of warnings have been fixed in order to enable the
+  continuous integration to build with `-Werror`.
+
+- Tests have been refactored to avoid any use of pipes which may
+  swallow error codes.
+
+- An error has been fixed that caused `warn()` to call exit(3P),
+  causing gob-fsck(1) to exit on the first warning.
+
+- Added an editorconfig file.
+
 gob v0.7
 ========
 
