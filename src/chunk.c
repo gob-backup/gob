@@ -22,7 +22,7 @@
 #include <arpa/inet.h>
 #include <sys/stat.h>
 
-int main(int argc, char *argv[])
+int gob_chunk(int argc, const char *argv[])
 {
     unsigned char *block = malloc(BLOCK_LEN);
     struct hash_state state;
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     ssize_t bytes;
 
     if (argc != 2)
-        die("USAGE: %s ( --version | <DIR> )", argv[0]);
+        die("USAGE: %s chunk ( --version | <DIR> )", argv[0]);
 
     atexit(close_stdout);
 

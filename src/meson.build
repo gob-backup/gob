@@ -20,22 +20,16 @@ config = configure_file(
 )
 
 executable(
-  'gob-cat',
+  'gob',
   install: true,
   c_args: args,
-  sources: [ 'gob-cat.c', 'common.c', 'blake2/blake2b-ref.c', config ],
-)
-
-executable(
-  'gob-chunk',
-  install: true,
-  c_args: args,
-  sources: [ 'gob-chunk.c', 'common.c', 'blake2/blake2b-ref.c', config ],
-)
-
-executable(
-  'gob-fsck',
-  install: true,
-  c_args: args,
-  sources: [ 'gob-fsck.c', 'common.c', 'blake2/blake2b-ref.c', config ],
+  sources: [
+      'gob.c',
+      'cat.c',
+      'chunk.c',
+      'common.c',
+      'fsck.c',
+      'blake2/blake2b-ref.c',
+      config
+  ],
 )

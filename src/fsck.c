@@ -120,7 +120,7 @@ out:
     return err;
 }
 
-int main(int argc, char *argv[])
+int gob_fsck(int argc, const char *argv[])
 {
     struct store store;
     struct dirent *ent;
@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
     int err = 0;
 
     if (argc != 2)
-        die("USAGE: %s ( --version | <DIR> )", argv[0]);
+        die("USAGE: %s fsck ( --version | <DIR> )", argv[0]);
 
     atexit(close_stdout);
 

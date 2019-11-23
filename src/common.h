@@ -43,6 +43,10 @@ struct store {
     int shardfds[256];
 };
 
+int gob_cat(int argc, const char *argv[]);
+int gob_chunk(int argc, const char *argv[]);
+int gob_fsck(int argc, const char *argv[]);
+
 void die(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 void die_errno(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 void warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
