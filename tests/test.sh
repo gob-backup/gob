@@ -37,7 +37,7 @@ test_when_finished() {
 
 test_store() {
 	test_when_finished rm -rvf "$1" &&
-	mkdir "$1"
+	gob init "$1"
 }
 
 test_expect_success() {
@@ -87,6 +87,18 @@ test_expect_success() {
 	fi
 }
 
+test_expect_success 'initializing succeeds' '
+	test_when_finished rm -rf store &&
+	assert_success gob init store &&
+	assert_success test -f store/version
+'
+
+test_expect_success 'initializing fails if target exists' '
+	test_when_finished rm -rf store &&
+	assert_success gob init store &&
+	assert_failure gob init store
+'
+
 test_expect_success 'chunking with invalid block store version fails' '
 	test_store store &&
 	assert_success echo 0 >store/version &&
@@ -100,6 +112,12 @@ test_expect_success 'chunking without block directory fails' '
 
 test_expect_success 'chunking with nonexisting block directory fails' '
 	assert_failure gob chunk foobar
+'
+
+test_expect_success 'chunking fails if target is no blob store' '
+	test_when_finished rm -rf store &&
+	assert_success mkdir store &&
+	assert_failure gob chunk store
 '
 
 test_expect_success 'test -w /dev/full' 'chunking with invalid stdout fails' '

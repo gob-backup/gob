@@ -29,6 +29,7 @@ executable(
       'chunk.c',
       'common.c',
       'fsck.c',
+      'init.c',
       'blake2/blake2b-ref.c',
       config
   ],

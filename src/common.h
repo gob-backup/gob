@@ -46,6 +46,7 @@ struct store {
 int gob_cat(int argc, const char *argv[]);
 int gob_chunk(int argc, const char *argv[]);
 int gob_fsck(int argc, const char *argv[]);
+int gob_init(int argc, const char *argv[]);
 
 void die(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 void die_errno(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
@@ -65,6 +66,7 @@ int hash_state_init(struct hash_state *state);
 int hash_state_update(struct hash_state *state, const unsigned char *data, size_t len);
 int hash_state_final(struct hash *out, struct hash_state *state);
 
+int store_init(const char *path);
 int store_open(struct store *out, const char *path);
 void store_close(struct store *store);
 int store_write(struct hash *out, struct store *store, const unsigned char *data, size_t datalen);

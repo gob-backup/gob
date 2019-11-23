@@ -27,6 +27,7 @@ static struct {
     { gob_cat,   "cat",   "Concatenate chunks" },
     { gob_chunk, "chunk", "Chunk and store data" },
     { gob_fsck,  "fsck",  "Check consistency of a store"  },
+    { gob_init,  "init",  "Initialize a new store"  },
 };
 
 int main(int argc, const char *argv[])
