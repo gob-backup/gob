@@ -214,6 +214,32 @@ int hash_state_final(struct hash *out, struct hash_state *state)
     return hash_from_bin(out, hash, sizeof(hash));
 }
 
+int store_init(const char *path)
+{
+    int storefd, versionfd;
+    uint32_t version;
+    struct stat st;
+
+    if ((stat(path, &st)) == 0)
+        die("Path exists already: %s", path);
+
+    if (mkdir(path, 0777) < 0 || (storefd = open(path, O_RDONLY)) < 0)
+        die_errno("Cannot create store directory: %s", path);
+
+    if ((versionfd = openat(storefd, BLOCK_STORE_VERSION_FILE, O_CREAT|O_EXCL|O_WRONLY, 0666)) < 0)
+        die_errno("Unable to initialize store version");
+
+    version = htonl(BLOCK_STORE_VERSION);
+
+    if (write_bytes(versionfd, (unsigned char *) &version, sizeof(version)) < 0)
+        die_errno("Unable to write store version");
+
+    close(versionfd);
+    close(storefd);
+
+    return 0;
+}
+
 int store_open(struct store *out, const char *path)
 {
     struct stat st;
@@ -226,24 +252,15 @@ int store_open(struct store *out, const char *path)
     if (fstat(storefd, &st) < 0 || !S_ISDIR(st.st_mode))
         die("Storage is not a directory");
 
-    if ((versionfd = openat(storefd, BLOCK_STORE_VERSION_FILE, O_RDONLY)) < 0) {
-        version = htonl(BLOCK_STORE_VERSION);
+    if ((versionfd = openat(storefd, BLOCK_STORE_VERSION_FILE, O_RDONLY)) < 0)
+        die_errno("Could not open store's version file");
 
-        if ((versionfd = openat(storefd, BLOCK_STORE_VERSION_FILE,
-                O_CREAT|O_EXCL|O_WRONLY, 0644)) < 0)
-            die_errno("Unable to create store version file");
+    if (read_bytes(versionfd, (unsigned char *) &version, sizeof(version)) != sizeof(version))
+        die_errno("Unable to read store version");
 
-        if (write_bytes(versionfd, (unsigned char *) &version, sizeof(version)) < 0)
-            die_errno("Unable to write store version");
-    } else {
-        if (read_bytes(versionfd, (unsigned char *) &version, sizeof(version))
-                != sizeof(version))
-            die_errno("Unable to read store version");
-
-        version = ntohl(version);
-        if (version != BLOCK_STORE_VERSION)
-            die_errno("Unable to open block store with version %"PRIu32, version);
-    }
+    version = ntohl(version);
+    if (version != BLOCK_STORE_VERSION)
+        die_errno("Unable to open block store with version %"PRIu32, version);
 
     close(versionfd);
 
