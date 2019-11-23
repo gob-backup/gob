@@ -105,9 +105,11 @@ int gob_cat(int argc, const char *argv[])
     if (!hash_eq(&computed_hash, &expected_hash))
         die("Hash mismatch");
 
+    if (store_close(&store) < 0)
+        die("Unable to close store");
+
     free(line);
     free(block);
-    store_close(&store);
 
     return 0;
 }

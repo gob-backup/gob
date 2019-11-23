@@ -17,6 +17,8 @@
 
 #include "config.h"
 
+#include <dirent.h>
+#include <errno.h>
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -52,6 +54,8 @@ void die(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 void die_errno(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 void warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
+int try_close(int fd);
+int try_closedir(DIR *d);
 void close_stdout(void);
 
 ssize_t read_bytes(int fd, unsigned char *buf, size_t buflen);
@@ -68,6 +72,6 @@ int hash_state_final(struct hash *out, struct hash_state *state);
 
 int store_init(const char *path);
 int store_open(struct store *out, const char *path);
-void store_close(struct store *store);
+int store_close(struct store *store);
 int store_write(struct hash *out, struct store *store, const unsigned char *data, size_t datalen);
 ssize_t store_read(unsigned char *out, size_t outlen, struct store *store, const struct hash *hash);
