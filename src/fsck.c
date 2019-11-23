@@ -125,7 +125,7 @@ int gob_fsck(int argc, const char *argv[])
     struct store store;
     struct dirent *ent;
     DIR *storedir;
-    int err = 0;
+    int storefd, err = 0;
 
     if (argc != 2)
         die("USAGE: %s fsck <DIR>", argv[0]);
@@ -138,7 +138,7 @@ int gob_fsck(int argc, const char *argv[])
     if (store_open(&store, argv[1]) < 0)
         die_errno("Unable to open store");
 
-    if ((storedir = fdopendir(store.fd)) == NULL)
+    if ((storefd = dup(store.fd)) < 0 || (storedir = fdopendir(storefd)) == NULL)
         die_errno("Unable to open store directory");
 
     while ((ent = readdir(storedir)) != NULL) {
