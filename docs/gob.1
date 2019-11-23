@@ -1,0 +1,38 @@
+.TH GOB  "1"
+.SH NAME
+gob \- block-based backup utility
+.SH SYNOPSIS
+.B gob [\-\-version] <COMMAND> [ARGS...]
+.SH DESCRIPTION
+gob is a block-based backup utility.
+It tries to be as simple as possible while doing everything necessary to create deduplicated backups.
+To do so, it strictly follows the Unix principle of doing one thing per command.
+.sp
+The main idea of gob is based on the notion of block storages and indices.
+The block storage is using a content-adressable file system inspired by git.
+gob will read blocks up to a specified maximum block size, hash this block and then put it into the block storage using the hash as name.
+So when reading the same block twice, it will only get stored once.
+.sp
+The block storage is only the first part, as the restoration process needs to be able to read blocks in the correct order, again.
+To do so, the chunking program will output a list of hashes of the blocks read, which is called an "index".
+Using this list, it becomes trivial to restore the complete data by simply concatenating all blocks in the order given by the index.
+.SH OPTIONS
+\-\-version
+.RS 4
+Show version and build information.
+.RE
+.SH COMMANDS
+gob-cat(1)
+.RS 4
+Read from a block store.
+.RE
+.PP
+gob-chunk(1)
+.RS 4
+Store data in a block store.
+.RE
+.PP
+gob-fsck(1)
+.RS 4
+Check consistency of a block store.
+.RE
