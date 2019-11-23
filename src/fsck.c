@@ -128,12 +128,9 @@ int gob_fsck(int argc, const char *argv[])
     int err = 0;
 
     if (argc != 2)
-        die("USAGE: %s fsck ( --version | <DIR> )", argv[0]);
+        die("USAGE: %s fsck <DIR>", argv[0]);
 
     atexit(close_stdout);
-
-    if (!strcmp(argv[1], "--version"))
-        version("gob-fsck");
 
     if ((block = malloc(BLOCK_LEN)) == NULL)
         die_errno("Unable to allocate block");

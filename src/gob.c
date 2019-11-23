@@ -34,7 +34,7 @@ int main(int argc, const char *argv[])
     size_t i;
 
     if (argc <= 1) {
-        fprintf(stderr, "USAGE: %s <COMMAND>\n\n", argv[0]);
+        fprintf(stderr, "USAGE: %s [--version] <COMMAND>\n\n", argv[0]);
         fprintf(stderr, "The following commands are available:\n\n");
 
         for (i = 0; i < ARRAY_SIZE(commands); i++) {
@@ -42,7 +42,13 @@ int main(int argc, const char *argv[])
         }
 
         return 1;
+    } else if (!strcmp(argv[1], "--version")) {
+        printf("%s version "GOB_VERSION"\n\n"
+               "block size: %d\n"
+               "hash size:  %d\n", argv[0], BLOCK_LEN, HASH_LEN);
+        return 0;
     }
+
     for (i = 0; argc > 1 && i < ARRAY_SIZE(commands); i++) {
         if (strcmp(argv[1], commands[i].name))
             continue;

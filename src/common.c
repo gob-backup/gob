@@ -61,15 +61,6 @@ void warn(const char *fmt, ...)
     putc('\n', stderr);
 }
 
-void version(const char *executable)
-{
-    printf("%s version "GOB_VERSION"\n"
-           "\n"
-           "block size: %d\n"
-           "hash size:  %d\n", executable, BLOCK_LEN, HASH_LEN);
-    exit(0);
-}
-
 void close_stdout(void)
 {
 #ifdef HAVE_FPENDING

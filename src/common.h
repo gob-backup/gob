@@ -50,7 +50,6 @@ int gob_fsck(int argc, const char *argv[]);
 void die(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 void die_errno(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
 void warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-void version(const char *executable) __attribute__((noreturn));
 
 void close_stdout(void);
 

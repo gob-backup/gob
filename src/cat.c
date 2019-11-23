@@ -55,12 +55,9 @@ int gob_cat(int argc, const char *argv[])
     size_t total = 0, n = 0, expected_len;
 
     if (argc != 2)
-        die("USAGE: %s cat ( --version | <DIR> )", argv[0]);
+        die("USAGE: %s cat <DIR>", argv[0]);
 
     atexit(close_stdout);
-
-    if (!strcmp(argv[1], "--version"))
-        version("gob-cat");
 
     if (store_open(&store, argv[1]) < 0)
         die("Unable to open store");

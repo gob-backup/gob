@@ -2,17 +2,12 @@
 .SH NAME
 gob-cat \- Concatenate blocks
 .SH SYNOPSIS
-.B gob-cat (\-\-version | <BLOCKSTORAGE>)
+.B gob-cat <BLOCKSTORAGE>
 .SH DESCRIPTION
 gob-cat reads a block index from stdin and will output the corresponding blocks from the given block storage.
 The index is expected to contain a block hash on each line followed by a trailer encoding the complete length and an overall hash.
 The path to the block storage is required to exist and needs to hold all blocks listed by the index.
 .SH OPTIONS
-\-\-version
-.RS 4
-Show version and build information.
-.RE
-.PP
 <BLOCKSTORAGE>
 .RS 4
 Path to the block storage.

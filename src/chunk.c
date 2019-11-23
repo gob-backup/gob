@@ -32,12 +32,9 @@ int gob_chunk(int argc, const char *argv[])
     ssize_t bytes;
 
     if (argc != 2)
-        die("USAGE: %s chunk ( --version | <DIR> )", argv[0]);
+        die("USAGE: %s chunk <DIR>", argv[0]);
 
     atexit(close_stdout);
-
-    if (!strcmp(argv[1], "--version"))
-        version("gob-chunk");
 
     if (store_open(&store, argv[1]) < 0)
         die("Unable to open store");

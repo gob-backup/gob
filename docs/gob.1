@@ -2,7 +2,7 @@
 .SH NAME
 gob \- block-based backup utility
 .SH SYNOPSIS
-.B gob <COMMAND> [ARGS...]
+.B gob [\-\-version] <COMMAND> [ARGS...]
 .SH DESCRIPTION
 gob is a block-based backup utility.
 It tries to be as simple as possible while doing everything necessary to create deduplicated backups.
@@ -16,6 +16,11 @@ So when reading the same block twice, it will only get stored once.
 The block storage is only the first part, as the restoration process needs to be able to read blocks in the correct order, again.
 To do so, the chunking program will output a list of hashes of the blocks read, which is called an "index".
 Using this list, it becomes trivial to restore the complete data by simply concatenating all blocks in the order given by the index.
+.SH OPTIONS
+\-\-version
+.RS 4
+Show version and build information.
+.RE
 .SH COMMANDS
 gob-cat(1)
 .RS 4
