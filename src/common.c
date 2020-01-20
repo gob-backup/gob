@@ -61,6 +61,24 @@ void warn(const char *fmt, ...)
     putc('\n', stderr);
 }
 
+int try_close(int fd)
+{
+  int error;
+  do {
+      error = close(fd);
+  } while (error < 0 && errno == EINTR);
+  return error;
+}
+
+int try_closedir(DIR *d)
+{
+  int error;
+  do {
+      error = closedir(d);
+  } while (error < 0 && errno == EINTR);
+  return error;
+}
+
 void close_stdout(void)
 {
 #ifdef HAVE_FPENDING
@@ -234,8 +252,8 @@ int store_init(const char *path)
     if (write_bytes(versionfd, (unsigned char *) &version, sizeof(version)) < 0)
         die_errno("Unable to write store version");
 
-    close(versionfd);
-    close(storefd);
+    if (try_close(versionfd) < 0 || try_close(storefd) < 0)
+        die_errno("Unable to finalize creation");
 
     return 0;
 }
@@ -262,7 +280,8 @@ int store_open(struct store *out, const char *path)
     if (version != BLOCK_STORE_VERSION)
         die_errno("Unable to open block store with version %"PRIu32, version);
 
-    close(versionfd);
+    if (try_close(versionfd) < 0)
+        die_errno("Unable to close block's version file");
 
     out->fd = storefd;
     for (i = 0; i < 256; i++)
@@ -271,14 +290,18 @@ int store_open(struct store *out, const char *path)
     return 0;
 }
 
-void store_close(struct store *store)
+int store_close(struct store *store)
 {
     int i;
 
-    close(store->fd);
+    if (try_close(store->fd) < 0)
+        return -1;
+
     for (i = 0; i < 256; i++)
-        if (store->shardfds[i] >= 0)
-            close(store->shardfds[i]);
+        if (store->shardfds[i] >= 0 && try_close(store->shardfds[i]) < 0)
+            return -1;
+
+    return 0;
 }
 
 static int open_shard(struct store *store, const struct hash *hash, int create)
@@ -334,7 +357,7 @@ int store_write(struct hash *out, struct store *store, const unsigned char *data
         die_errno("Unable to create block '%s'", hash.hex);
     }
 
-    if (write_bytes(fd, data, datalen) < 0 || close(fd) < 0) {
+    if (write_bytes(fd, data, datalen) < 0 || try_close(fd) < 0) {
         unlinkat(shardfd, name, 0);
         die_errno("Unable to write block '%s'", hash.hex);
     }
@@ -365,7 +388,8 @@ ssize_t store_read(unsigned char *out, size_t outlen, struct store *store, const
     if ((len = read_bytes(fd, out, outlen)) < 0)
         die_errno("Unable to read block '%s'", hash->hex);
 
-    close(fd);
+    if (try_close(fd) < 0)
+        die_errno("Unable to close block '%s'", hash->hex);
 
     return len;
 }

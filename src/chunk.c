@@ -60,8 +60,10 @@ int gob_chunk(int argc, const char *argv[])
 
     printf(">%s %"PRIuMAX"\n", hash.hex, total);
 
+    if (store_close(&store) < 0)
+        die("Unable to close store");
+
     free(block);
-    store_close(&store);
 
     return 0;
 }

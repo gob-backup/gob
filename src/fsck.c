@@ -29,7 +29,7 @@ static unsigned char *block;
 static int scan_shard(int storefd, const char *shard)
 {
     struct hash computed_hash, expected_hash;
-    struct dirent *ent;
+    struct dirent *ent = NULL;
     char filehash[HASH_LEN * 2 + 1];
     DIR *sharddir = NULL;
     int shardfd = -1, err = 0;
@@ -107,16 +107,15 @@ static int scan_shard(int storefd, const char *shard)
         }
 
 next:
-        if (blockfd >= 0)
-            close(blockfd);
+        if (blockfd >= 0 && try_close(blockfd) < 0) {
+            warn("Failed closing block %s%s", shard, ent->d_name);
+            err = -1;
+        }
     }
 
 out:
-    if (sharddir) {
-        closedir(sharddir);
-    } else if (shardfd >= 0) {
-        close(shardfd);
-    }
+    if ((sharddir ? try_closedir(sharddir) : shardfd ? try_close(shardfd) : 0) < 0)
+            warn("failed closing shard directory %s%s", shard, ent ? ent->d_name : "");
     return err;
 }
 
@@ -125,7 +124,7 @@ int gob_fsck(int argc, const char *argv[])
     struct store store;
     struct dirent *ent;
     DIR *storedir;
-    int err = 0;
+    int storefd, err = 0;
 
     if (argc != 2)
         die("USAGE: %s fsck <DIR>", argv[0]);
@@ -138,7 +137,7 @@ int gob_fsck(int argc, const char *argv[])
     if (store_open(&store, argv[1]) < 0)
         die_errno("Unable to open store");
 
-    if ((storedir = fdopendir(store.fd)) == NULL)
+    if ((storefd = dup(store.fd)) < 0 || (storedir = fdopendir(storefd)) == NULL)
         die_errno("Unable to open store directory");
 
     while ((ent = readdir(storedir)) != NULL) {
@@ -175,9 +174,17 @@ int gob_fsck(int argc, const char *argv[])
         }
     }
 
+    if (try_closedir(storedir) < 0) {
+        warn("could not close store directory");
+        err = -1;
+    }
+
+    if (store_close(&store) < 0) {
+        warn("could not close store");
+        err = -1;
+    }
+
     free(block);
-    closedir(storedir);
-    store_close(&store);
 
     return err;
 }
