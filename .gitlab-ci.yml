@@ -1,0 +1,138 @@
+stages:
+  - build
+  - test
+  - analyze
+
+.setup-alpine:
+  before_script:
+    - apk add clang gcc meson libc-dev
+
+.setup-ubuntu:
+  before_script:
+    - apt update && apt install -y clang gcc meson ninja-build
+
+.build:
+  stage: build
+  script:
+    - mkdir build
+    - meson build . --prefix="${HOME}/dest" --warnlevel 3 --werror
+    - ninja -C build all
+  artifacts:
+    paths: [ build/ ]
+
+.build-clang:
+  extends: .build
+  variables:
+    CC: clang
+
+.build-gcc:
+  extends: .build
+  variables:
+    CC: gcc
+
+.test:
+  stage: test
+  script:
+    ninja -C build test
+
+build:alpine-latest:
+  image: alpine:latest
+  extends:
+    - .setup-alpine
+    - .build-gcc
+  image: alpine:latest
+
+test:alpine-latest:
+  image: alpine:latest
+  extends:
+    - .setup-alpine
+    - .test
+  needs:
+    - build:alpine-latest
+
+build:alpine-edge:
+  image: alpine:edge
+  extends:
+    - .setup-alpine
+    - .build-gcc
+
+test:alpine-edge:
+  image: alpine:edge
+  extends:
+    - .setup-alpine
+    - .test
+  needs:
+    - build:alpine-edge
+
+build:ubuntu-1604-clang:
+  image: ubuntu:16.04
+  extends:
+    - .build-clang
+    - .setup-ubuntu
+  variables:
+    CFLAGS: -Wno-padded -Wno-packed
+
+test:ubuntu-1604-clang:
+  image: ubuntu:16.04
+  extends:
+    - .setup-ubuntu
+    - .test
+  needs:
+    - build:ubuntu-1604-clang
+
+build:ubuntu-1604-gcc:
+  image: ubuntu:16.04
+  extends:
+    - .build-gcc
+    - .setup-ubuntu
+
+test:ubuntu-1604-gcc:
+  image: ubuntu:16.04
+  extends:
+    - .setup-ubuntu
+    - .test
+  needs:
+    - build:ubuntu-1604-gcc
+
+build:ubuntu-1910-clang:
+  image: ubuntu:19.10
+  extends:
+    - .setup-ubuntu
+    - .build-clang
+
+test:ubuntu-1910-clang:
+  image: ubuntu:19.10
+  extends:
+    - .setup-ubuntu
+    - .test
+  needs:
+    - build:ubuntu-1910-clang
+
+build:ubuntu-1910-gcc:
+  image: ubuntu:19.10
+  extends:
+    - .setup-ubuntu
+    - .build-gcc
+
+test:ubuntu-1910-gcc:
+  image: ubuntu:19.10
+  extends:
+    - .setup-ubuntu
+    - .test
+  needs:
+    - build:ubuntu-1910-gcc
+
+coverity:
+  image: ubuntu:19.10
+  extends: .setup-ubuntu
+  stage: analyze
+  only:
+    refs:
+      - master
+  script:
+    - curl https://scan.coverity.com/download/linux64 --form project=$COVERITY_PROJECT --form token=$COVERITY_TOKEN | tar xz
+    - mkdir build
+    - meson build .
+    - cov-analysis-linux64-*/bin/cov-build --dir cov-int ninja -C build all
+    - tar czf cov-int.tar.gz cov-int
+    - curl https://scan.coverity.com/builds?project=$COVERITY_PROJECT --form token=$COVERITY_TOKEN --form email=$GITLAB_USER_EMAIL --form file=@cov-int.tar.gz --form version=$CI_COMMIT_SHA --form description="$CI_COMMIT_SHA / $CI_COMMIT_TITLE / $CI_COMMIT_REF_NAME:$CI_PIPELINE_ID"
