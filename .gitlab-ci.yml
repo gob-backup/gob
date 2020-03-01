@@ -9,7 +9,7 @@ stages:
 
 .setup-ubuntu:
   before_script:
-    - apt update && apt install -y clang gcc meson ninja-build
+    - apt update && apt install -y clang curl gcc meson ninja-build
 
 .build:
   stage: build
