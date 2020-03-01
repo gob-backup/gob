@@ -129,6 +129,7 @@ coverity:
   only:
     refs:
       - master
+  dependencies: []
   script:
     - curl https://scan.coverity.com/download/linux64 --form project=$COVERITY_PROJECT --form token=$COVERITY_TOKEN | tar xz
     - mkdir build
